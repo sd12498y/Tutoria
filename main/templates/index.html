@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <div class="row row-content">
+        <div class="col-xs-12 col-md-8">
+        <h2>Welcome to Tutoria</h2>
+        {% if request.user.is_authenticated %}
+            <p>{{request.user}} You have successfully logged in</p>
+        {% else %}
+            <p>You haven't logged in~<a href="/login/">Log in</a></p>
+        {% endif %}
+    </div>
+</div>
+</div>
+{% endblock %}

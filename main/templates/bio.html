@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-md-8">
+    	<h2>{{ TargetTutor.user.username }} </h2>
+        <a href="/tutor/{{ TargetTutor.primary_key }}/"> {{ tutor.user.user.first_name }} </a>
+    </div>
+</div>
+</div>
+<div class="container">
+    <div class="row row-content">
+        <div class="col-xs-12 col-md-8">
+        	<p>{{ TargetTutor.description }}</p>
+    </div>
+</div>
+</div>
+
+    
+    <p>{{TargetTutor.user.username}}</p>
+    <p>{{TargetTutor.school}} </p>
+
+    <form  action="/tutor/{{TargetTutor.Userid}}/Extimetable/" method="get"> {% csrf_token %}
+      <input id="Book" type="submit" value="Book" />
+    </form>
+
+    <p> ${{TargetTutor.hourly_rate}}HKD </p>
+    <p> (Commission not included) </p>
+
+    <h1 id="bio"> Introduction/Biography <h1>
+      <p>{{TargetTutor.description}} </p>
+
+
+      <table border="2" cellspacing="3" align="center">
+        <tr>
+            <td>
+            {% for date in Dates %}
+                <td> {{ date }}
+            {% endfor %}
+        </tr>
+        <tr>
+          <td align="center">
+          <td align="center">SUNDAY
+          <td align="center">MONDAY
+          <td align="center">TUESDAY
+          <td align="center">WEDNESDAY
+          <td align="center">THURSDAY
+          <td align="center">FRIDAY
+          <td align="center">SATURDAY
+        </tr>
+
+          {% for time in Times %}
+            <tr>
+              <td> {{time}}
+            {% for date in Dates %}
+                <td align="centre">
+                  <!--
+                  <form action="/tutor/ConfirmBooking/" method="post">{% csrf_token %}
+                    <input id='Sunday' type="submit" value="Select" onclick="generateRow()"/>
+                  </form>
+                  -->
+
+                  {% for eachsession in ListOfSessions%}
+
+                      {%if eachsession.SessionDate == date and eachsession.StartTime == time%}
+                        <p>{{eachsession.Status}}</p>
+                      {% endif %}
+                  {% endfor %}
+            {% endfor %}
+            </tr>
+          {% endfor %}
+
+      </table>
+        <form action="{%url 'main:confirmBooking' TargetTutor.id%}" method="POST">
+            {% csrf_token %}
+            <!--Sform is the input field for booking -->
+            {{ Sform.as_p }}
+            <input type="submit" />
+        </form>
+      {% endblock %}

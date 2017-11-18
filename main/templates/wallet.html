@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <div class="row row-content">
+        <div class="col-xs-12 col-md-8">
+		    {% if request.user.is_authenticated %}
+			<h2>{{ request.user.username }}'s Wallet</h2>
+
+			{% if error_message %}
+			<p><strong>{{ error_message }}</strong></p>
+			{% endif %}
+
+			<h3>Your Balance: {{request.user.myuser.wallet.balance}}</h3>
+		</div>
+	<div class="col-xs-12 col-md-4">
+		<h2><a href="addValue" class="btn btn-info" role="button">Add Value</a></h2>
+	</div>
+	</div>
+</div>
+<div class="container">
+    <div class="row row-content">
+        <div class="col-xs-12 col-md-8">
+        <h2>Transaction history</h2>
+        {% if transaction_history %}
+			    
+			    {% for record in transaction_history %}
+			     <div class="row row-content">
+        			<div class="col-xs-12 col-md-8">
+        				<p>Payer: {{record.payer.user.username}}</p>
+        				<p>Receiver: {{record.receiver.user.username}}</p>
+			       	 	<p>Amount: {{ record.amount }}</p>
+			       	 	<p>{{record.action}}</p>
+			       	 	<p>At: {{record.timestamp}}</p>
+			        </div>
+			    </div>
+			    {% endfor %}
+			    
+			{% else %}
+			    <p>No records are found.</p>
+			{% endif %}
+        </div>
+    </div>
+</div>
+    {% endif %}
+{% endblock %}

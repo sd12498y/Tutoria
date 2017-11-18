@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<div class="container">
+    <div class="row row-content">
+        <div class="col-xs-12 col-md-8">
+            <h2>Search Result: </h2>
+        </div>
+    </div>
+</div>
+{% for Tutor in ListOfTutor %}
+<div class="container">
+    <div class="row row-content">
+        <div class="col-xs-12 col-md-8">
+            <img src="{{Tutor.user.propic.url}}"/>
+            <h4>Tutor Name: {{Tutor.user.user.first_name}}</h4>
+            <p>University: {{Tutor.school}}</p>
+            <p>Hourly rate:{{Tutor.hourly_rate}}</p>
+        </div>
+        <div class="col-xs-12 col-md-4">
+            <h4><a href="{% url 'main:bio' Tutor.id %}" class="btn btn-info" role="button"> Book</a></h4>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+                        <!--
+                        <p>"Review rate: "{{SingleTutor.ReviewRate}} " out of " {{SingleTutor.NumOfReview}} "reviews" </p>
+                        <p>"Tag: "{{SingleTutor.Tag}}</p>
+                        <p>"Hourly_rate:"{{SingleTutor.hourly_rate}}</p>
+
+                        <form action=url(r'^tutor/', include('tutor.urls'))>
+                            <input type="submit" value="Book" />
+                        </form> 
+                        <a href="{% url 'bio' page=SearchResult.slug %}">Book</a> -->

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-md-8">
+            <h1>Confirm Cancellation</h1>
+            <h2>Booking ID: {{booking.id}}</h2>
+            <p>Booking Time: {{booking.timestamp}}</p>
+
+            <p>TutorID: {{booking.tutor.user.user.username}}</p>
+            <p>StudentID: {{booking.student.user.user.username}}</p>
+            <p>Date: {{booking.session_date}}</p>
+            <p>Start Time: {{booking.start_time}}</p>
+            <p>End Time: {{booking.end_time}}</p>
+            
+            <h2>Refund</h2>
+            <h3>Tutoring Fee: {{booking.tutoring_fee}}</h3>
+            <h3>Commission: {{booking.commission}}</h3>
+            <h3>Total Payable: {{booking.total_payable}}</h3>
+
+    </div>
+          <div class="col-xs-12 col-md-4">
+                <h5><a href="{% url 'main:confirmCancel' booking.id %}" class="btn btn-danger" role="button">Confirm Cancellation</a></h5>
+          </div>
+    </div>
+</div>
+    
+{% endblock %}
+
+
