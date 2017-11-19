@@ -8,21 +8,28 @@
         </div>
     </div>
 </div>
-{% for Tutor in ListOfTutor %}
 <div class="container">
+{% for Tutor in ListOfTutor %}
     <div class="row row-content">
-        <div class="col-xs-12 col-md-8">
-            <img src="{{Tutor.user.propic.url}}"/>
-            <h4>Tutor Name: {{Tutor.user.user.first_name}}</h4>
-            <p>University: {{Tutor.school}}</p>
-            <p>Hourly rate:{{Tutor.hourly_rate}}</p>
+        <div class="col-xs-12 col-md-9">
+            <div class="media">
+                <div class="media-left">
+                    <img class="media-object pull-left" style="width:90px;    padding-right: 10px;" src="{{Tutor.user.propic.url}}"/>
+                </div>
+                <div class="media-body">
+                    <h2 class="media-heading">
+                    Tutor Name: {{Tutor.user.user.first_name}}</h2>
+                    <p>University: {{Tutor.school}}
+                    </br>Hourly rate:{{Tutor.hourly_rate}}</p>
+                </div>
+            </div>
         </div>
-        <div class="col-xs-12 col-md-4">
+        <div class="col-xs-12 col-md-3">
             <h4><a href="{% url 'main:bio' Tutor.id %}" class="btn btn-info" role="button"> Book</a></h4>
         </div>
     </div>
-</div>
 {% endfor %}
+</div>
 {% endblock %}
 
                         <!--

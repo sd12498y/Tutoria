@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'notifications',
+    'bootstrap4',
 ]
 
 MIDDLEWARE = [
@@ -124,5 +125,5 @@ LOGIN_REDIRECT_URL = '/'
 MEDIA_ROOT = (
 BASE_DIR
 )
-MEDIA_URL = '/main/static/'
+MEDIA_URL = '../'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

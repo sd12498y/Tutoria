@@ -30,6 +30,20 @@ def login(request):
 	else:
 		return HttpResponseRedirect('/login/')
 
+def register(request):
+    template = loader.get_template('register.html')
+    context={}
+    if request.method=="POST":
+        if request.POST['reg_student']:
+            #create a user object here
+            #store the user in the session and pass it to the next view
+            return HttpResponseRedirect(reverse('main:reg_student'))
+    return HttpResponse(template.render(context, request))
+
+def reg_student(request):
+    return render_to_response('reg_student.html',locals())
+
+
 def logout(request):
     auth.logout(request)
     return HttpResponseRedirect('/')

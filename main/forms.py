@@ -1,8 +1,7 @@
 from django import forms
 from datetime import datetime, timedelta
 from django.utils import timezone
-from .models import Booking
-
+from .models import Booking  
 from django.forms import extras
 
 class SessionForm(forms.Form):
