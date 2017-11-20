@@ -43,13 +43,13 @@
                      		<span class="glyphicon glyphicon-bell">{% live_notify_badge classes="badge" %}</span></a>
                      		<ul id='live_notify_list' class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                      		</ul>
-							<!--{% live_notify_list classes="dropdown-menu" %}-->
 					</li>
 					<li><a href="{% url 'main:bookingHistory' %}">Hi! {{ request.user.username }} </a></li>
 					<li><a href="/logout">Log out</a></li></ul>
 				</div>
 			</div>
 		</nav>
+				
 
 	            {% block content %}
 	            {% endblock %}

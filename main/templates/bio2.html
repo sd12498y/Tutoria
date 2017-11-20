@@ -3,33 +3,17 @@
 <div class="container">
     <div class="row">
         <div class="col-xs-12 col-md-8">
-    	<h2>{{ TargetTutor.user.username }} </h2>
-        <a href="/tutor/{{ TargetTutor.primary_key }}/"> {{ tutor.user.user.first_name }} </a>
+    	
     </div>
 </div>
 </div>
 <div class="container">
-    <div class="row row-content">
-        <div class="col-xs-12 col-md-8">
-        	<p>{{ TargetTutor.description }}</p>
-    </div>
-</div>
-</div>
-
     
-    <p>{{TargetTutor.user.username}}</p>
-    <p>{{TargetTutor.university}} </p>
+</div>
+</div>
 
-    <form  action="/tutor/{{ TargetTutor.id }}/extimetable/" method="get">
-      <input id="Book" type="submit" value="Book" />
-    </form>
-
-    <p> ${{TargetTutor.hourlyRate}}HKD </p>
-    <p> {{TargetTutor.ContractID}}</p>
-    <p> (Commission not included) </p>
-
-    <h1 id="bio"> Introduction/Biography <h1>
-      <p>{{TargetTutor.description}} </p>
+    {% include 'tutorUpperBio.html' %}
+    {% block schedule %}
 
 
       <table border="2" cellspacing="3" align="center">
@@ -72,5 +56,5 @@
           {% endfor %}
 
       </table>
-        
+        {% endblock %}
       {% endblock %}
