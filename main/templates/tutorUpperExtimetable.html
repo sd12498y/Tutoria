@@ -1,0 +1,42 @@
+
+<div class="container">
+    <div class="row">
+       
+</div>
+</div>
+
+</div>
+    
+    
+
+    
+
+
+
+   <table class="table">
+
+    
+    {% for name, value in TargetTutor.extimetable_get_fields %}
+
+      {% if value %}
+        
+        <tr>
+          <th>{{ name }}: </th>
+          <th>{{ value }}</th>
+        </tr>
+      {%endif%}
+    {% endfor %}
+    <tr>
+      <th>Course: </th>
+      <th>
+        {% for eachcourse in TutorCourse %}
+        
+          <p>{{eachcourse.courseCode}} {{eachcourse.courseCode.courseName}}</p>
+        
+        {% endfor %}
+      </th>
+
+     </table>
+  {% block shortline %}
+  {% endblock %}
+

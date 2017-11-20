@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<script type="text/javascript">
+var global_buttonid;
+var status;
+
+var coursename;
+
+function reply_click(clicked_id)
+{
+    //alert(clicked_id);
+    global_buttonid = clicked_id;
+    //document.getElementById("buttonid").innerHTML=global_buttonid;
+    //var html = '<input type="hidden" name="buttonid">';
+
+    //alert(document.getElementById('eachbutton').value);
+    document.getElementById('eachbutton').value = global_buttonid;
+    //alert(document.getElementById('eachbutton').value);
+
+    document.getElementById('ButtonForm').submit();
+    //document.ButtonForm.buttonid.value = global_buttonid;
+}
+
+
+
+
+
+</script>
+
+
+    
+    <form  action="/search/{{ TargetTutor.id }}/" method="get">
+      <input id="Book" type="submit" value="Detailed Profile" />
+    </form>
+
+    <h1 id="bio">Booking Timetable<h1>
+
+    {% include 'tutorUpperExtimetable.html' %}
+    {% block shortline %}
+
+	
+	
+	<!-- Olivia: add form for button -->
+  
+	
+	<form action="{%url 'main:confirmBooking' TargetTutor.id%}" id="ButtonForm" name="ButtonForm" method="post">{% csrf_token %}
+	  
+        
+        <h5>
+          
+          <div class="container">
+
+            
+            <script>select_course()</script>
+            <div class="row">
+               <div class="col-lg-1" style="background-color:#fff8e1;"></div>
+              {% for date in Dates %}
+              
+                <div class="col-lg-1" style="background-color:#fff8e1;">{{ date }}</div>
+             
+              {% endfor %}
+
+
+
+
+
+            </div>
+
+
+            <div class="row">
+              <div class="col-lg-1" style="background-color:#fff8e1;"></div>
+              <div class="col-lg-1" style="background-color:#fff8e1;">SUNDAY</div>
+              <div class="col-lg-1" style="background-color:#fff8e1;">MONDAY</div>
+              <div class="col-lg-1" style="background-color:#fff8e1;">TUESDAY</div>
+              <div class="col-lg-1" style="background-color:#fff8e1;">WEDNESDAY</div>
+              <div class="col-lg-1" style="background-color:#fff8e1;">THURSDAY</div>
+              <div class="col-lg-1" style="background-color:#fff8e1;">FRIDAY</div>
+              <div class="col-lg-1" style="background-color:#fff8e1;">SATURDAY</div>
+            </div>
+
+          
+            {% for time in Times %}
+              <div class="row">
+              <div class="col-lg-1" style="background-color:#fff8e1;">{{time}}</div>
+              
+              {% for date in Dates %}
+              
+                 
+                   
+                    
+
+                    {% for eachsession in ListOfSessions%}
+
+
+                        {%if eachsession.SessionDate == date and eachsession.StartTime == time%}
+                          
+                              
+
+                            
+                            {%if eachsession.Status == "Free"%}
+                              
+                              <input class="col-lg-1 active" id="{{ eachsession.Buttonid }}" type="button" value="                   " onclick="reply_click(this.id)" style="background-color:#fff8e1;"/>
+                             
+                            {%elif eachsession.Status == "Booked"%}
+                              
+                              <input class="col-lg-1 disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="background-color:#004d40;"/>
+                            {%elif eachsession.Status == "SameDay"%}
+                              
+                              <input class="col-lg-1 disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="background-color:#4B515D;"/>  
+                            {%else%}
+                              
+                              <input class="col-lg-1 disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="background-color:#000000;"/>
+                              
+                            {%endif%}
+
+
+                            
+                            
+                        
+                         
+
+                          
+                        {% endif %}
+                    {% endfor %}
+
+                    
+                   
+              {% endfor %}
+              </div>
+
+            {% endfor %}
+          </div>
+
+
+        </h5>
+
+      <input type="hidden" id="eachbutton" name="eachbutton" value=""/>
+        
+     </form>
+     
+         {% endblock %}
+      {% endblock %}

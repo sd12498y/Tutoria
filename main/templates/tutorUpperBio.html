@@ -1,0 +1,47 @@
+
+<div class="container">
+    <div class="row">
+       
+</div>
+</div>
+
+</div>
+
+    
+    
+
+    <form  action="/tutor/{{ TargetTutor.id }}/extimetable/" method="get">
+      <input id="Book" type="submit" value="Book" />
+    </form>
+
+    
+
+    <h1 id="bio"> Introduction/Biography <h1>
+     
+
+
+   <table class="table">
+    
+    {% for name, value in TargetTutor.tutor_upper_get_fields %}
+      {% if value %}
+        
+        <tr>
+          <th>{{ name }}: </th>
+          <th>{{ value }}</th>
+        </tr>
+      {%endif%}
+    {% endfor %}
+    <tr>
+      <th>Course: </th>
+      <th>
+        {% for eachcourse in TutorCourse %}
+        
+          <p>{{eachcourse.courseCode}} {{eachcourse.courseCode.courseName}}</p>
+        
+        {% endfor %}
+      </th>
+
+     </table>
+  {% block schedule %}
+  {% endblock %}
+
