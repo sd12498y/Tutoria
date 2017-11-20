@@ -36,7 +36,9 @@
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown"
                          role="button" aria-haspopup="true" aria-expanded="false">
                      		<span class="glyphicon glyphicon-bell">{% live_notify_badge classes="badge" %}</span></a>
-							{% live_notify_list classes="dropdown-menu" %}
+                     		<div id='live_notify_list' class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                     		</div>
+							<!--{% live_notify_list classes="dropdown-menu" %}-->
 					</li>
 					<li><a href="{% url 'main:bookingHistory' %}">Hi! {{ request.user.username }} </a></li>
 					<li><a href="/logout">Log out</a></li></ul>
