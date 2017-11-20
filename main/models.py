@@ -219,13 +219,11 @@ class Transaction(models.Model):
 	timestamp = models.DateTimeField(default = timezone.now)
 	AV = "Add Value"
 	RD = "Refund"
-	IP = "Incoming Payment"
-	OP = "Outgoing Payment"
+	TP = "Tutorial Payment"
 	choices = (
 		(AV, 'Add Value'),
 		(RD, 'Refund'),
-		(IP, 'Incoming Payment'),
-		(OP, 'Outgoing Payment'),
+		(TP, 'Tutorial Payment'),
 		)
 	senderID = models.ForeignKey(User, related_name='senderID', on_delete=models.CASCADE, default = "")
 	receiverID = models.ForeignKey(User, related_name='receiverID', on_delete=models.CASCADE, default = "")
@@ -258,11 +256,6 @@ class Course(models.Model):
 
 
 class Tag(models.Model):
-	tutor = models.ForeignKey(Tutor, on_delete=models.CASCADE)
-	tag = models.CharField(max_length=20)
-
-
-class Tag(models.Model):
 	tutorID = models.ForeignKey(Tutor, on_delete=models.CASCADE)
 	tag = models.CharField(max_length=20)
 
@@ -282,5 +275,6 @@ class Coupon(models.Model):
 class Review(models.Model):
 	studentID = models.ForeignKey(Student, related_name='r_student', on_delete=models.CASCADE)
 	tutorID = models.ForeignKey(Tutor, related_name='r_tutor', on_delete=models.CASCADE)
+	description = models.TextField()
 	rate = models.FloatField(default=0, null=True)
 	
