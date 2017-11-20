@@ -60,7 +60,7 @@ class WalletView(generic.ListView):
     context_object_name = 'transaction_history'
     def get_queryset(self):
         """Return the last five published questions."""
-        return self.request.user.myuser.wallet.getHistory()
+        return self.request.user.wallet.getHistory()
 def addValue(request):
 	request.user.wallet.addValue(100)
 	return HttpResponseRedirect(reverse('main:wallet'))
