@@ -70,7 +70,7 @@ class BookingHistoryView(generic.ListView):
     context_object_name = 'booking_history'
     def get_queryset(self):
         """Return the last five published questions."""
-        return Booking.objects.filter(Q(student=self.request.user.myuser) | Q(tutor=self.request.user.myuser) ).order_by('-timestamp')[:7]
+        return Booking.objects.filter(Q(studentID=self.request.user.myuser) | Q(tutorID=self.request.user.myuser) ).order_by('-timestamp')[:7]
 
 class SearchResultView(generic.ListView):
 	template_name = 'searchResults.html'
