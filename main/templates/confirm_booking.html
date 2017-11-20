@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-md-8">
+            <h2>Confirm Booking</h2>
+
+            <p>Tutor: {{t.id}}
+            <p>Date: {{b.session_date}}</p>
+            <p>Start Time: {{b.start_time}}</p>
+            <p>End Time: {{b.end_time}}</p>
+            <p>Hard Code Course: XXXX </p>
+
+        </div>
+    	
+	</div>
+    <div class="row">
+        <h2>Checkout</h2>
+        <p>Tutoring Fee: ${{b.tutoring_fee}}</p>
+        <p>Commission: ${{b.commission}}</p>
+        <p>Total: ${{b.total_payable}}</p>
+    </div>
+</div>
+
+
+    
+{% endblock %}
