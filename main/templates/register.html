@@ -1,38 +1,14 @@
 {% extends 'base1.html' %}
 {% block content %}
   <div class="wrapper">
-    <form action="" class="form-register" method="post">
-    {% csrf_token %}       
-      <h2 class="form-signin-heading">Welcome to Tutoria</h2>
-      <h5>User Register Form</h5>
-      <label>First Name:</label>
-      <input type="text" class="form-control" name="first_name" placeholder="First Name" required="" autofocus="" /></br>
-      <label>Last Name:</label>
-      <input type="text" class="form-control" name="last_name" placeholder="Last Name" required="" autofocus="" /></br>
-      <label>Email:</label>
-      <input type="email" class="form-control" name="email" placeholder="Email" required="" autofocus="" /></br>
-      <label>Tel:</label>
-      <input type="tel" class="form-control" name="tel" placeholder="Telephone No." required="" autofocus="" /></br>
-      <label>Username:</label>
-      <input type="text" class="form-control" name="username" placeholder="Username" required="" autofocus="" />
-      <i>Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only</i></br>
-      <label>Password:</label>
-      <input type="password" class="form-control" name="password1" placeholder="Password" required=""/>
-      <i>
-      	<ul>
-	      	<li>Your password can't be too similar to your other personal information.</li>
-	      	<li>Your password must contain at least 8 characters.</li>
-			<li>Your password can't be a commonly used password.</li>
-			<li>Your password can't be entirely numeric.</li>
-		</ul>
-	</i>
-		<label>Password Confirmation: </label>
-		<input type="password" class="form-control" name="password2" placeholder="Confirm your Password" required=""/>
-	</br>
-      <button class="btn btn-md btn-primary btn-block" type="submit" name='reg_student' value="register_student">Register as a student</button>
-      <button class="btn btn-md btn-primary btn-block" type="submit" value="register_tutor">Register as a tutor</button>
-      <button class="btn btn-md btn-primary btn-block" type="submit" value="register_both">Register as both</button>
-      <i style="text-align:right; color:#A9A9A9">Step 1 of 2</i>
+      <form action="" class="form-register" method="post" enctype="multipart/form-data" >
+        {% csrf_token %}  
+        <h2 class="form-signin-heading">Welcome to Tutoria</h2>
+        <h5>Please select your preference</h5></br>
+        <button class="btn btn-md btn-info btn-block" type="submit" name='reg_student' value="register_student">Register as a student</button>
+        <button class="btn btn-md btn-info btn-block" type="submit" value="register_tutor">Register as a tutor</button>
+        <button class="btn btn-md btn-info btn-block" type="submit" value="register_both">Register as both</button>
+        <i style="text-align:right; color:#A9A9A9">Step 1 of 2</i>
     </form>
-  </div>
+    </div>
 {% endblock %}

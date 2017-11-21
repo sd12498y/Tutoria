@@ -10,6 +10,7 @@ urlpatterns = [
 	url(r'^logout/$', views.logout, name='logout'),
 	url(r'^register/$', views.register, name='register'),
 	url(r'^register/student/$', views.reg_student, name='reg_student'),
+	url(r'^register/(?P<type>\w+)/success$', views.reg_success, name='reg_success'),
 	url(r'^wallet/$', views.WalletView.as_view(), name='wallet'),
 	url(r'^wallet/addValue/$', views.addValue, name='addValue'),
 	url(r'^search/$', views.SearchResultView.as_view(), name='search'),
