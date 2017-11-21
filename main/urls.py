@@ -15,9 +15,11 @@ urlpatterns = [
 	url(r'^search/$', views.SearchResultView.as_view(), name='search'),
 	url(r'^search/(?P<TutorID>[0-9]+)/$', views.bio, name='bio'),
 	url(r'^tutor/(?P<TutorID>[0-9]+)/extimetable/$', views.extimetable, name='extimetable'),
-	url(r'^booking/(?P<pk>[0-9]+)/$', views.BookingDetailView.as_view(), name='bookingDetail'),
+	
 	url(r'^booking/(?P<pk>[0-9]+)/cancel$', views.CancelView.as_view(), name='cancel'),
 	url(r'^booking/(?P<booking_id>[0-9]+)/confirmcancel$', views.ConfirmCancel, name='confirmCancel'),
 	url(r'^bookinghistory/$', views.BookingHistoryView.as_view(), name='bookingHistory'),
+	#url(r'^booking/(?P<pk>[0-9]+)/$', views.BookingDetailView.as_view(), name='bookingDetail'),
+	url(r'^booking/(?P<pk>[0-9]+)/$', views.BookingDetails, name='bookingDetail'),
 	url(r'^search/(?P<TutorID>[0-9]+)/confirmbooking/$', views.confirmBooking, name='confirmBooking'),
 ]

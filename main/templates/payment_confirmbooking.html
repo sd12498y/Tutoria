@@ -1,0 +1,109 @@
+
+<script type="text/javascript">
+    
+var VList;
+//var VList = JSON.parse({{ json_ValidCouponList|safe }});
+function getJSON(json_ValidCouponList){
+    VList = JSON.parse(json_ValidCouponList);
+    alert(VList)
+
+}
+function is_CouponValid()
+{
+    
+   
+    //window.alert "IsCouponValid";
+
+    //var ValidCouponList = {{ ValidCouponList }}
+    
+    var InputCouponCode = document.getElementById('InCoupon').value;
+    alert ("Input: "+InputCouponCode);
+    
+    //var decoded = JSON.load(VList);
+
+
+    for (var i = 0; i < VList.fields.length; i++) {
+        var eachfield = VList.fields[i];
+        alert(eachfield.couponCode);
+    }
+ 
+    /*
+    alert(VList)
+
+    var hasMatch =false;
+    var index
+    for (index = 0; index in VList.couponCode) {
+      alert("*")
+      alert(eachcoupon)
+    }
+    */
+    /*
+    for (var index = 0; index < VList.length; ++index) {
+
+     var eachcoupon = VList[index];
+     
+     alert (eachcoupon.couponCode)
+
+     if(eachcoupon.couponCode == "InputCouponCode"){
+       alert("Coupon is valid");
+       hasMatch = true;
+       break;
+     }
+    }
+    if (hasMatch == false){
+        alert("Coupon Code is not valid");
+    }
+*/
+
+    return false;
+
+
+
+   
+    /*
+    var VList = {{ ValidCouponList|safe }};
+    alert ("VList length"+VList.length);
+    /*
+    if (InputCouponCode.length == 0){
+        //mark empty
+        alert("empty");
+    }
+        /*
+    else if (ValidCouponList.indexOf('InputCouponCode') >-1){
+        //code is not valid
+        alert("Coupon Code is not valid");
+    }
+    else{
+        alert("Coupon is valid");
+    }
+    return false;
+    
+        */
+
+}
+
+</script>
+<script>
+     
+    window.onpageshow = function() {
+      getJSON({{json_ValidCouponList}});//<--quote removed!
+    };
+
+</script>
+
+<div class="row">
+        <h2>Checkout</h2>
+        <p>Tutoring Fee: ${{b.tutoringFee}}</p>
+        <p>Commission: ${{b.commission}}</p>
+        <p>Total: ${{b.totalPayable}}</p>
+        <form id="couponForm" name="couponForm">
+            Coupon Code: 
+                <input type="text" name="InCoupon" id="InCoupon" value=""/>
+                <input class="col-lg-1 active" type="button" name="couponSubmit" value = "Validate" onclick="is_CouponValid();"/>
+                
+        </form>
+
+</div>
+{% block payment %}
+{% endblock %}
+
