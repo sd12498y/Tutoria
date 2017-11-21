@@ -14,16 +14,15 @@
 
     {% include 'tutorUpperBio.html' %}
     {% block schedule %}
-
-
-      <table border="2" cellspacing="3" align="center">
-        <tr>
+<div class="container">
+      <table class ="table table-bordered">
+        <tr class="active">
             <td>
             {% for date in Dates %}
                 <td> {{ date }}
             {% endfor %}
         </tr>
-        <tr>
+        <tr class="active">
           <td align="center">
           <td align="center">SUNDAY
           <td align="center">MONDAY
@@ -36,19 +35,17 @@
 
           {% for time in Times %}
             <tr>
-              <td> {{time}}
+              <td class="active"> {{time}}</td>
             {% for date in Dates %}
-                <td align="centre">
                   <!--
                   <form action="/tutor/ConfirmBooking/" method="post">{% csrf_token %}
                     <input id='Sunday' type="submit" value="Select" onclick="generateRow()"/>
                   </form>
                   -->
-
                   {% for eachsession in ListOfSessions%}
 
                       {%if eachsession.SessionDate == date and eachsession.StartTime == time%}
-                        <p>{{eachsession.Status}}</p>
+                      <td>{{eachsession.Status}}</td>
                       {% endif %}
                   {% endfor %}
             {% endfor %}
@@ -58,3 +55,4 @@
       </table>
         {% endblock %}
       {% endblock %}
+    </div>

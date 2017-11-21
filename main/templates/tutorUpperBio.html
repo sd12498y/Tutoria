@@ -1,26 +1,8 @@
 
 <div class="container">
-    <div class="row">
-       
-</div>
-</div>
-
-</div>
-
-    
-    
-
-    <form  action="/tutor/{{ TargetTutor.id }}/extimetable/" method="get">
-      <input id="Book" type="submit" value="Book" />
-    </form>
-
-    
 
     <h1 id="bio"> Introduction/Biography <h1>
-     
-
-
-   <table class="table">
+     <table class="table table-hover">
     
     {% for name, value in TargetTutor.tutor_upper_get_fields %}
       {% if value %}
@@ -40,8 +22,18 @@
         
         {% endfor %}
       </th>
-
+    </tr>
      </table>
+      <form  action="/tutor/{{ TargetTutor.id }}/extimetable/" method="get">
+      <input id="Book" class="btn btn-block btn-info btn-default center-block" type="submit" value="Book" />
+    </form>
+</div>
+
+    
+     
+
+
+
   {% block schedule %}
   {% endblock %}
 
