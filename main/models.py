@@ -21,7 +21,7 @@ class myUserManager(models.Manager):
 class myUser(models.Model):
 	user = models.OneToOneField(User, on_delete=models.CASCADE)
 	tel = models.CharField(max_length=8)
-	profilePicture = models.FileField(upload_to='img/propic/')
+	profilePicture = models.FileField(upload_to='static/img/propic/', default='static/img/propic/blank.png')
 
 	objects = myUserManager()
 

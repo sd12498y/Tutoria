@@ -3,6 +3,6 @@
       <label>School:</label>
       <input type="text" class="form-control" name="school" placeholder="Your School" required="" autofocus="" /></br>
       <button class="btn btn-md btn-info btn-block" type="submit" value="register_student">Register</button>
-      <a href = "{{request.META.HTTP_REFERER}}" class="btn btn-md btn-secondary btn-block" role="button" value="back">Back</a>
+      <a href = "{% url 'main:register' %}" class="btn btn-md btn-secondary btn-block" role="button" value="back">Back</a>
       <i style="text-align:right; color:#A9A9A9">Step 2 of 2</i>
 {% endblock %}
