@@ -1,15 +1,8 @@
-{% extends 'base1.html' %}
-{% block content %}
-  <div class="wrapper">
-    <form action="" class="form-register" method="post">
-    {% csrf_token %}       
-      <h2 class="form-signin-heading">Welcome to Tutoria</h2>
-      <h5>Student Register Form</h5>
+{% extends 'registerForm.html' %}
+{% block lowerHalf %}       
       <label>School:</label>
       <input type="text" class="form-control" name="school" placeholder="Your School" required="" autofocus="" /></br>
-      <button class="btn btn-md btn-primary btn-block" type="submit" value="register_student">Register</button>
-      <button class="btn btn-md btn-secondary btn-block" type="button" value="back">Back</button>
+      <button class="btn btn-md btn-info btn-block" type="submit" value="register_student">Register</button>
+      <a href = "{% url 'main:register' %}" class="btn btn-md btn-secondary btn-block" role="button" value="back">Back</a>
       <i style="text-align:right; color:#A9A9A9">Step 2 of 2</i>
-    </form>
-  </div>
 {% endblock %}

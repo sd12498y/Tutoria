@@ -22,7 +22,7 @@
         {% if booking_history %}
 			    
 			    {% for booking in booking_history %}
-			    {% if booking.tutor == request.user.myuser %}
+			    {% if booking.tutorID == request.user.myuser %}
 			   <div class="container">
 			     <div class="row row-content">
         			<div class="col-xs-12 col-md-8">
@@ -31,8 +31,8 @@
         				<p>Date: {{booking.session_date}}</p>
 			       	 	<p>Start: {{ booking.start_time }}</p>
 			       	 	<p>End: {{booking.end_time}}</p>
-			       	 	<p>Student: {{booking.student.user.username}}</p>
-			       	 	<p>Tutor: {{booking.tutor.user.username}}</p>
+			       	 	<p>Student: {{booking.studentID.user.username}}</p>
+			       	 	<p>Tutor: {{booking.tutorID.user.username}}</p>
 			        </div>
 			        <div class="col-xs-12 col-md-4">
             			<p><a href="{% url 'main:bookingDetail' booking.id %}" class="btn btn-info" role="button"> View Details</a></p>
@@ -53,11 +53,11 @@
 	</div>
 			{% endif %}
 		</div>
-		<div id="student" class="tab-pane fade active">
+		<div id="student" class="tab-pane fade in active">
         {% if booking_history %}
 			    
 			    {% for booking in booking_history %}
-			    {% if booking.student == request.user.myuser %}
+			    {% if booking.studentID == request.user.myuser %}
 				   <div class="container">
 				     <div class="row row-content">
 	        			<div class="col-xs-12 col-md-8">
@@ -66,8 +66,8 @@
 	        				<p>Date: {{booking.session_date}}</p>
 				       	 	<p>Start: {{ booking.start_time }}</p>
 				       	 	<p>End: {{booking.end_time}}</p>
-				       	 	<p>Student: {{booking.student.user.username}}</p>
-				       	 	<p>Tutor: {{booking.tutor.user.username}}</p>
+				       	 	<p>Student: {{booking.studentID.user.username}}</p>
+				       	 	<p>Tutor: {{booking.tutorID.user.username}}</p>
 				        </div>
 				        <div class="col-xs-12 col-md-4">
 	            			<p><a href="{% url 'main:bookingDetail' booking.id %}" class="btn btn-info" role="button"> View Details</a></p>
@@ -89,5 +89,11 @@
 			{% endif %}
 		</div>
 </div>
-
+<!--
+<script type="text/javascript">
+	$(document).ready(function(){
+	$('.nav-tabs a:first').tab('show'); 
+});
+</script>
+-->
 {% endblock %}

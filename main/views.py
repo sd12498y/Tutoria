@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import time
 import json
+from django.contrib.auth.models import User
 from datetime import datetime, date, time, timedelta
 from django.shortcuts import render, render_to_response
 from django.views import generic
@@ -10,6 +11,7 @@ from django.contrib import auth
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from .models import myUser, Tutor, PrivateTutor, ContractTutor, Booking, Transaction, Wallet, Session, Course, Coupon
+from .models import myUser, Tutor, PrivateTutor, ContractTutor, Booking, Transaction, Wallet, Session, Course, Coupon, Student
 from django.db.models import Q
 from notifications.signals import notify
 from django.shortcuts import get_object_or_404
@@ -23,7 +25,7 @@ from django.utils import timezone
 from django.utils.timezone import localtime
 import pprint
 import sys
-from .forms import SessionForm
+from .forms import SessionForm, StudentRegisterForm
 
 #Olivia: 7/11/17 14:50
 from django.db.models import Q
@@ -45,14 +47,33 @@ def register(request):
     template = loader.get_template('register.html')
     context={}
     if request.method=="POST":
-        if request.POST['reg_student']:
-            #create a user object here
-            #store the user in the session and pass it to the next view
+        if 'reg_student' in request.POST:
             return HttpResponseRedirect(reverse('main:reg_student'))
+        elif 'reg_tutor' in request.POST:
+            return HttpResponseRedirect(reverse('main:reg_tutor'))
     return HttpResponse(template.render(context, request))
 
 def reg_student(request):
-    return render_to_response('reg_student.html',locals())
+    if request.method=="POST":
+        form = StudentRegisterForm(request.POST, request.FILES)
+        if form.is_valid():
+            usr = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password1'])
+            usr.first_name = form.cleaned_data['firstName']
+            usr.last_name = form.cleaned_data['lastName']
+            myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
+            school = request.POST['school']
+            usr.save()
+            wallet = Wallet(user=usr,balance=0)
+            wallet.save()
+            myUsr.save()
+            stud = Student.objects.create_student(myUsr, school)
+            stud.save()
+            return HttpResponseRedirect(reverse('main:reg_success'))
+    return render(request,'reg_student.html')
+
+def reg_success(request, type):
+    return render(request,'registerSuccess.html', {'type': type,})
+
 def logout(request):
     auth.logout(request)
     return HttpResponseRedirect('/')
@@ -75,7 +96,7 @@ class BookingHistoryView(generic.ListView):
     context_object_name = 'booking_history'
     def get_queryset(self):
         """Return the last five published questions."""
-        return Booking.objects.filter(Q(student=self.request.user.myuser) | Q(tutor=self.request.user.myuser) ).order_by('-timestamp')[:7]
+        return Booking.objects.filter(Q(studentID=self.request.user.myuser) | Q(tutorID=self.request.user.myuser) ).order_by('-timestamp')[:7]
 
 class SearchResultView(generic.ListView):
 	template_name = 'searchResults.html'
