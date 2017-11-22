@@ -1,0 +1,121 @@
+
+
+{% load static %}
+
+
+	
+	
+	<!-- Olivia: add form for button -->
+  
+	
+	<form action="." id="nextWeekButtonForm" name="nextWeekButtonForm" method="POST">{% csrf_token %}
+	<h2> Next week </h2>
+        
+        <h5>
+          
+          <div class="container">
+
+            
+
+            <!-- make table -->
+            <table class="extimetable_container table-bordered">
+            <thead>
+            <tr>
+
+               <th style="background-color:#fff8e1;"></div>
+              {% for date in nextWeekDates %}
+              
+                <th style="background-color:#fff8e1;">{{ date }}</div>
+             
+              {% endfor %}
+
+
+
+
+
+            </tr>
+
+            
+            
+              
+              <tr>
+                <th style="background-color:#fff8e1;">
+                <th style="background-color:#fff8e1;">SUNDAY</th>
+                <th style="background-color:#fff8e1;">MONDAY</th>
+                <th style="background-color:#fff8e1;">TUESDAY</th>
+                <th style="background-color:#fff8e1;">WEDNESDAY</th>
+                <th style="background-color:#fff8e1;">THURSDAY</th>
+                <th style="background-color:#fff8e1;">FRIDAY</th>
+                <th style="background-color:#fff8e1;">SATURDAY</th>
+              </tr>
+            </thead>
+
+          
+            {% for time in Times %}
+              <tr>
+              <td style="background-color:#fff8e1;">{{time}}</th>
+              
+              {% for date in nextWeekDates %}
+              
+                 
+                   
+                    
+
+                    {% for eachsession in ListOfSessions%}
+
+
+                        {%if eachsession.SessionDate == date and eachsession.StartTime == time%}
+                          
+                              
+
+                            <td>
+                            {%if eachsession.Status == "Free"%}
+                              
+                              <input class="btn active" id="{{ eachsession.Buttonid }}" type="button" value="                   " onclick="reply_click(this.id)" style="width:100%; background-color:#fff8e1;"/>
+                             
+                            {%elif eachsession.Status == "Booked"%}
+                              
+                              <input class="btn disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="width:100%; background-color:#004d40;"/>
+                            {%elif eachsession.Status == "SameDay"%}
+                              
+                              <input class="btn disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="width:100%; background-color:#4B515D;"/>  
+                            {%else%}
+                              
+                              <input class="btn disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="width:100%; background-color:#000000;"/>
+                              
+                            {%endif%}
+                            </td>
+
+
+                            
+                            
+                        
+                         
+
+                          
+                        {% endif %}
+                    {% endfor %}
+                    
+
+                    
+                   
+              {% endfor %}
+              </tr>
+              
+
+            {% endfor %}
+          
+
+
+
+            </table>
+
+        </h5>
+
+      <input type="hidden" id="eachbutton" name="eachbutton" value=""/>
+        
+     </form>
+
+  {% block nextweek %}
+  {% endblock %}
+     

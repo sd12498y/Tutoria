@@ -6,3 +6,10 @@
 body {
   padding-top: 70px;
 }
+
+table.extimetable_container {
+    height: 20px;
+    width: 60px;
+
+
+}

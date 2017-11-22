@@ -10,7 +10,10 @@ from django.core.mail import send_mail
 from notifications.signals import notify
 
 from django.utils import timezone
+from django.utils.timezone import localtime
 from model_utils.managers import InheritanceManager
+from django.core import serializers
+from django.http import JsonResponse
 
 
 class myUserManager(models.Manager):
@@ -70,7 +73,8 @@ class PrivateTutor(Tutor):
 		temp = ("Hourly Rate", "$" + str(self.hourlyRate))
 		list.append(temp)
 		return list
-
+	def getSessionInterval(self):
+		return 60
 	def tutor_upper_get_fields(self):
 		list = []
 
@@ -110,6 +114,8 @@ class ContractTutor(Tutor):
 		temp = ("University", self.university)
 		list.append(temp)
 		return list
+	def getSessionInterval(self):
+		return 30
 	def tutor_upper_get_fields(self):
 		list = []
 
@@ -261,11 +267,13 @@ class Tag(models.Model):
 
 
 class CouponManager(models.Manager):
-	def GetValidCoupon(self):		
-		return self.filter(start_time__lte = timezone.now(), end_time__gte = timezone.now())
+	def getValidCoupon(self):		
+		results = self.filter(startDateTime__lte = timezone.localtime(timezone.now()), endDateTime__gte = timezone.localtime(timezone.now()))
+		return results
+		#return JsonResponse(data=list(results.values()), safe=False)
 
 class Coupon(models.Model):
-	CouponCode = models.CharField(max_length=10, default="")
+	couponCode = models.CharField(max_length=10, default="")
 	startDateTime = models.DateTimeField(auto_now_add = False, default = timezone.now)
 	endDateTime = models.DateTimeField(auto_now_add = False, default = timezone.now)
 	objects = CouponManager()

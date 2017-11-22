@@ -7,9 +7,41 @@ var status;
 
 var coursename;
 
+var firstload = 1;
+
+var settimetable = 0;
+function toggle_visibility(this_id, next_id) {
+   var thisweek = document.getElementById(this_id);
+   var nextweek = document.getElementById(next_id);
+   if(thisweek.style.display == 'block'){
+      thisweek.style.display = 'none';
+      nextweek.style.display = 'block';
+      document.getElementById('nextWeek').value = "Previous Week";
+    }
+
+   else{
+      thisweek.style.display = 'block';
+      nextweek.style.display = 'none';
+      document.getElementById('nextWeek').value = "Next Week";
+   }
+}
+
+function default_visibility(this_id, next_id){
+  var thisweek = document.getElementById(this_id);
+  var nextweek = document.getElementById(next_id);
+  if (firstload == 1){
+    firstload = 0;
+    thisweek.style.display = 'block';
+    nextweek.style.display = 'none';
+    document.getElementById('nextWeek').value = "Next Week";
+
+  }
+
+}
+
+
 function reply_click(clicked_id)
 {
-    //alert(clicked_id);
     global_buttonid = clicked_id;
     //document.getElementById("buttonid").innerHTML=global_buttonid;
     //var html = '<input type="hidden" name="buttonid">';
@@ -18,10 +50,9 @@ function reply_click(clicked_id)
     document.getElementById('eachbutton').value = global_buttonid;
     //alert(document.getElementById('eachbutton').value);
 
-    document.getElementById('ButtonForm').submit();
+    document.getElementById('thisWeekButtonForm').submit();
     //document.ButtonForm.buttonid.value = global_buttonid;
 }
-
 
 
 
@@ -43,101 +74,16 @@ function reply_click(clicked_id)
 	
 	<!-- Olivia: add form for button -->
   
-	
-	<form action="{%url 'main:confirmBooking' TargetTutor.id%}" id="ButtonForm" name="ButtonForm" method="post">{% csrf_token %}
-	  
-        
-        <h5>
-          
-          <div class="container">
+	   <input id="nextWeek" type="submit" value="" onclick="toggle_visibility('thisWeekButtonForm', 'nextWeekButtonForm')" />
+	   {% include 'thisweek_extimetable.html' %}
+     {% block thisweek %}
+     {% endblock %}
+     {% include 'nextweek_extimetable.html' %}
+     {% block nextweek %}
+     <script>default_visibility('thisWeekButtonForm', 'nextWeekButtonForm');</script>
 
-            
-            <script>select_course()</script>
-            <div class="row">
-               <div class="col-lg-1" style="background-color:#fff8e1;"></div>
-              {% for date in Dates %}
-              
-                <div class="col-lg-1" style="background-color:#fff8e1;">{{ date }}</div>
-             
-              {% endfor %}
+     {% endblock %}
 
-
-
-
-
-            </div>
-
-
-            <div class="row">
-              <div class="col-lg-1" style="background-color:#fff8e1;"></div>
-              <div class="col-lg-1" style="background-color:#fff8e1;">SUNDAY</div>
-              <div class="col-lg-1" style="background-color:#fff8e1;">MONDAY</div>
-              <div class="col-lg-1" style="background-color:#fff8e1;">TUESDAY</div>
-              <div class="col-lg-1" style="background-color:#fff8e1;">WEDNESDAY</div>
-              <div class="col-lg-1" style="background-color:#fff8e1;">THURSDAY</div>
-              <div class="col-lg-1" style="background-color:#fff8e1;">FRIDAY</div>
-              <div class="col-lg-1" style="background-color:#fff8e1;">SATURDAY</div>
-            </div>
-
-          
-            {% for time in Times %}
-              <div class="row">
-              <div class="col-lg-1" style="background-color:#fff8e1;">{{time}}</div>
-              
-              {% for date in Dates %}
-              
-                 
-                   
-                    
-
-                    {% for eachsession in ListOfSessions%}
-
-
-                        {%if eachsession.SessionDate == date and eachsession.StartTime == time%}
-                          
-                              
-
-                            
-                            {%if eachsession.Status == "Free"%}
-                              
-                              <input class="col-lg-1 active" id="{{ eachsession.Buttonid }}" type="button" value="                   " onclick="reply_click(this.id)" style="background-color:#fff8e1;"/>
-                             
-                            {%elif eachsession.Status == "Booked"%}
-                              
-                              <input class="col-lg-1 disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="background-color:#004d40;"/>
-                            {%elif eachsession.Status == "SameDay"%}
-                              
-                              <input class="col-lg-1 disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="background-color:#4B515D;"/>  
-                            {%else%}
-                              
-                              <input class="col-lg-1 disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="background-color:#000000;"/>
-                              
-                            {%endif%}
-
-
-                            
-                            
-                        
-                         
-
-                          
-                        {% endif %}
-                    {% endfor %}
-
-                    
-                   
-              {% endfor %}
-              </div>
-
-            {% endfor %}
-          </div>
-
-
-        </h5>
-
-      <input type="hidden" id="eachbutton" name="eachbutton" value=""/>
-        
-     </form>
      
          {% endblock %}
       {% endblock %}

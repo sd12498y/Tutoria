@@ -3,6 +3,7 @@
 
 
 
+
 <div class="container">
     <div class="row">
         <div class="col-xs-12 col-md-8">
@@ -22,7 +23,14 @@
         </div>
     	
 	</div>
-    
+    {% if t.hourlyRate %}
+        {% include 'payment_confirmbooking.html' %}
+        {% block payment %}
+
+
+        {% endblock %} 
+    {% endif %}
+
 
     <form  action="." method="POST">{% csrf_token %}
             <input id="confirmBooking" type="submit" value="Confirm Booking" />
