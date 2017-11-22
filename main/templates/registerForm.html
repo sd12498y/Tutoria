@@ -1,7 +1,181 @@
 {% extends 'base1.html' %}
 {% block content %}
+<script type="text/javascript">
+function validate(){
+  if (document.getElementById("username").classList.contains("is-valid")){
+    if(document.getElementById("email").classList.contains("is-valid")){
+      if(validatePassword1()){
+        if(validatePassword2()){
+          if(validateFirstName()){
+            if(validateLastName()){
+              if(validateTel()){
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+function validateSchool(){
+  var school = document.getElementById("school").value;
+  var schoolDiv = document.getElementById("school");
+  if (school.length == 0){
+      schoolDiv.classList.remove("is-valid");
+      schoolDiv.classList.add("is-invalid");
+      return false;
+  }else{
+      schoolDiv.classList.remove("is-invalid");
+      schoolDiv.classList.add("is-valid");
+      return true;
+  }
+}
+function validateFirstName(){
+  var firstName = document.getElementById("firstName").value;
+  //console.log(firstName.length);
+  var firstNameDiv = document.getElementById("firstName");
+  if (firstName.length == 0){
+      firstNameDiv.classList.remove("is-valid");
+      firstNameDiv.classList.add("is-invalid");
+      return false;
+  }else{
+      firstNameDiv.classList.remove("is-invalid");
+      firstNameDiv.classList.add("is-valid");
+      return true;
+  }
+}
+function validateLastName(){
+  var lastName = document.getElementById("lastName").value;
+  var lastNameDiv = document.getElementById("lastName");
+  if (lastName.length==0){
+      lastNameDiv.classList.remove("is-valid");
+      lastNameDiv.classList.add("is-invalid");
+      return false;
+  }else{
+      lastNameDiv.classList.remove("is-invalid");
+      lastNameDiv.classList.add("is-valid");
+      return true;
+  }
+}
+function validateTel(){
+  var tel = document.getElementById("tel").value;
+  var telDiv = document.getElementById("tel");
+  if (tel.length==0){
+      telDiv.classList.remove("is-valid");
+      telDiv.classList.add("is-invalid");
+      return false;
+  }else{
+      telDiv.classList.remove("is-invalid");
+      telDiv.classList.add("is-valid");
+      return true;
+  }
+}
+function validateUsername(){
+  var r;
+  var username = document.getElementById("username").value;
+  var usernameDiv = document.getElementById("username");
+  if (username.length == 0 || username.length >150){
+      usernameDiv.classList.remove("is-valid");
+      usernameDiv.classList.add("is-invalid");
+      document.getElementById("unFeedback").innerHTML = "Please provide a valid username";
+      return false;
+  }
+    var reg =  /^([a-z0-9\._\+-@]{0,})$/i;
+    var result = reg.test(username);
+    //console.log(result);
+    if (result == false) {
+      usernameDiv.classList.remove("is-valid");
+      usernameDiv.classList.add("is-invalid");
+      document.getElementById("unFeedback").innerHTML = "Please provide a valid username";
+      return false;
+    }
+  r = new XMLHttpRequest();
+  r.onreadystatechange = function(){
+    if (this.readyState == 4 && this.status == 200) {
+      var data = JSON.parse(r.responseText);
+      console.log(data);
+      if (data.exists == true) {
+          document.getElementById("unFeedback").innerHTML = "Username is already in use";
+          usernameDiv.classList.remove("is-valid");
+          usernameDiv.classList.add("is-invalid");
+        return false;
+      }else{
+        console.log("...");
+          usernameDiv.classList.remove("is-invalid");
+          usernameDiv.classList.add("is-valid");
+          return true;
+      }
+    }
+  }
+  r.open("GET", "/api/checkUsername/?username="+username, true);
+  r.send();
+}
+function validateEmail(){
+  var email = document.getElementById("email").value;
+  var emailDiv = document.getElementById("email");
+  //console.log(email)
+  var reg = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+  var result = reg.test(email);
+  if (result == false) {
+    emailDiv.classList.remove("is-valid");
+    emailDiv.classList.add("is-invalid");
+    document.getElementById("emailFeedback").innerHTML = "Please provide a valid email";
+    return false;
+  }
+  var r = new XMLHttpRequest();
+  r.onreadystatechange = function(){
+    if (this.readyState == 4 && this.status == 200) {
+      var data = JSON.parse(r.responseText);
+      if (data.exists == true) {
+        document.getElementById("emailFeedback").innerHTML = "This email is already in use";
+          emailDiv.classList.remove("is-valid");
+          emailDiv.classList.add("is-invalid");
+        return false;
+      }else{
+          emailDiv.classList.remove("is-invalid");
+          emailDiv.classList.add("is-valid");
+          return true;
+      }
+    }
+  }
+  r.open("GET", "/api/checkEmail/?email="+email, true);
+  r.send();
+}
+function validatePassword1(){
+    var password = document.getElementById("password1Div").value;
+    var reg =  /^([a-z0-9\._\+-@]{8,})$/i;
+    var result = reg.test(password);
+    if (result == false) {
+      password1Div.classList.remove("is-valid");
+      password1Div.classList.add("is-invalid");
+      document.getElementById("password1Feedback").innerHTML = "Please provide a valid password";
+      return false;
+    }else{
+      password1Div.classList.remove("is-invalid");
+      password1Div.classList.add("is-valid");
+      return true;
+    }
+}
+function validatePassword2(){
+    var password1 = document.getElementById("password1Div").value;
+    var password2 = document.getElementById("password2Div").value;
+    console.log(password1);
+    if (password1!=password2) {
+      password2Div.classList.remove("is-valid");
+      password2Div.classList.add("is-invalid");
+      document.getElementById("password2Feedback").innerHTML = "Password doesn't match";
+      return false;
+    }else{
+      password2Div.classList.remove("is-invalid");
+      password2Div.classList.add("is-valid");
+      return true;
+    }
+}
+</script>
   <div class="wrapper">
-    <form action="" class="form-register" method="post" enctype="multipart/form-data" >
+    <form action="" class="form-register" method="post" enctype="multipart/form-data" onsubmit="return validate()">
     {% csrf_token %}
     <div class="header">     
       <h2 class="form-signin-heading">Welcome to Tutoria</h2>
@@ -10,31 +184,49 @@
         <div class="form-row">
           <div class="form-group col-md-6">
             <label for="firstName">First Name</label>
-            <input type="text" name="firstName" id="firstName" class="form-control" placeholder="First name" required="" autofocus="">
+            <input type="text" name="firstName" id="firstName" class="form-control is-invalid" placeholder="First name" required="" autofocus="" onkeyup="validateFirstName()">
+            <div class="invalid-feedback" id="firstNameFeedback">
+              Please provide your first name.
+            </div>
           </div>
           <div class="form-group col-md-6">
             <label for="lastName">Last Name</label>
-            <input type="text" name="lastName" id="lastName" class="form-control" placeholder="Last name" required="" autofocus="">
+            <input type="text" name="lastName" id="lastName" class="form-control is-invalid" placeholder="Last name" required="" autofocus="" onkeyup="validateLastName()">
+            <div class="invalid-feedback" id="lastNameFeedback">
+              Please provide your last name.
+            </div>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group col-md-4">
             <label for="tel">Tel</label>
-            <input type="tel" class="form-control" name="tel" id="tel" placeholder="Tel" required="" autofocus="" />
+            <input type="tel" class="form-control is-invalid" name="tel" id="tel" placeholder="Tel" required="" autofocus="" onkeyup="validateTel()" />
+              <div class="invalid-feedback" id="telFeedback">
+              Please provide your telephone number.
+            </div>
           </div>
           <div class="form-group col-md-8">
             <label>Email</label>
-            <input type="email" class="form-control" name="email" placeholder="Email" required="" autofocus="" />
+            <input type="email" class="form-control is-invalid" name="email" id="email" placeholder="Email" required="" autofocus="" onkeyup="validateEmail()"/>
+            <div class="invalid-feedback" id="emailFeedback">
+              Please provide a valid email.
+            </div>
           </div>
         </div>
       <div class="form-group">
         <label>Username</label>
-        <input type="text" class="form-control" name="username" placeholder="Username" required="" autofocus="" />
+        <input type="text" class="form-control is-invalid" id="username" name="username" placeholder="Username" required="" autofocus="" onkeyup="validateUsername()"/>
         <small id="passwordHelpBlock" class="form-text text-muted">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only</small>
+        <div class="invalid-feedback" id="unFeedback">
+        Please provide a valid username.
+      </div>
       </div>
       <div class="form-group">
             <label>Password</label>
-            <input type="password" class="form-control" name="password1" placeholder="Password" required=""/>
+            <input type="password" class="form-control is-invalid" name="password1" id="password1Div" placeholder="Password" required="" onkeyup="validatePassword1()" />
+            <div class="invalid-feedback" id="password1Feedback">
+              Please provide a valid password.
+            </div>
             <small id="passwordHelpBlock" class="form-text text-muted">
             <i>
             	<ul>
@@ -47,7 +239,10 @@
       </div>
       <div class="form-group">
     		<label>Password Confirmation </label>
-    		<input type="password" class="form-control" name="password2" placeholder="Confirm your Password" required=""/>
+    		<input type="password" class="form-control is-invalid" name="password2" id="password2Div" placeholder="Confirm your Password" required="" onkeyup="validatePassword2()" />
+        <div class="invalid-feedback" id="password2Feedback">
+        Password doesn't match.
+      </div>
       </div>
       <div class="form-group">
         <label for="img">Upload your profile picture</label>

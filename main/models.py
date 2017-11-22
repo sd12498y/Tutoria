@@ -283,6 +283,6 @@ class Coupon(models.Model):
 class Review(models.Model):
 	studentID = models.ForeignKey(Student, related_name='r_student', on_delete=models.CASCADE)
 	tutorID = models.ForeignKey(Tutor, related_name='r_tutor', on_delete=models.CASCADE)
-	description = models.TextField()
+	description = models.TextField(default="")
 	rate = models.FloatField(default=0, null=True)
 	

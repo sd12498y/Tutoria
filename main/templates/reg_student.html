@@ -1,7 +1,12 @@
 {% extends 'registerForm.html' %}
 {% block lowerHalf %}       
       <label>School:</label>
-      <input type="text" class="form-control" name="school" placeholder="Your School" required="" autofocus="" /></br>
+      <div class="form-group">
+      <input type="text" class="form-control is-invalid" name="school" id="school" placeholder="Your School" required="" autofocus="" onkeyup="validateSchool()" />
+      <div class="invalid-feedback" id="schoolFeedback">
+              Please provide your university name.
+       </div>
+  	  </div>
       <button class="btn btn-md btn-info btn-block" type="submit" value="register_student">Register</button>
       <a href = "{% url 'main:register' %}" class="btn btn-md btn-secondary btn-block" role="button" value="back">Back</a>
       <i style="text-align:right; color:#A9A9A9">Step 2 of 2</i>
