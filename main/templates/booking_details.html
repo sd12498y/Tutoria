@@ -5,16 +5,16 @@
         <div class="col-xs-12 col-md-8">
             <h2>Booking ID: {{booking.id}}</h2>
             <p>Status: {{booking.status}}
-            <p>Booking Time: {{booking.timestamp}}</p>
-            <p>Date: {{booking.session_date}}</p>
-            <p>Start Time: {{booking.start_time}}</p>
-            <p>End Time: {{booking.end_time}}</p>
+            <p>Timestamp: {{booking.timestamp}}</p>
+            <p>Date: {{booking.sessionDate}}</p>
+            <p>Start Time: {{booking.startTime}}</p>
+            <p>End Time: {{booking.endTime}}</p>
             <br>
             <h3>Tutor:</h3>
-            <p>TutorID: {{booking.tutor.user.username}}</p>
-            <p>StudentID: {{booking.student.user.username}}</p>
+            <p>Tutor Username: {{booking.tutorID.user.username}}</p>
+            <p>Student Username: {{booking.studentID.user.username}}</p>
             <p>Total Payment:</p>
-            <p>{{booking.tutoring_fee}}+{{booking.commission}}={{booking.total_payable}}</p>
+            <p>{{booking.tutoringFee}}+{{booking.commission}}={{booking.totalPayable}}</p>
     </div>
     	{% if booking.status|lower != "cancelled"  and booking.student == request.user.myuser %}
           <div class="col-xs-12 col-md-4">

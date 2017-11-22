@@ -71,14 +71,17 @@
                             <td>
                             {%if eachsession.Status == "Free"%}
                               
-                              <input class="btn active" id="{{ eachsession.Buttonid }}" type="button" value="                   " onclick="reply_click(this.id)" style="width:100%; background-color:#fff8e1;"/>
+                              <input class="btn active" id="{{ eachsession.Buttonid }}" type="button" value="      Book       " onclick="reply_click(this.id)" style="width:100%; background-color:#fff8e1;"/>
                              
                             {%elif eachsession.Status == "Booked"%}
                               
                               <input class="btn disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="width:100%; background-color:#004d40;"/>
                             {%elif eachsession.Status == "SameDay"%}
                               
-                              <input class="btn disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="width:100%; background-color:#4B515D;"/>  
+                              <input class="btn disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="width:100%; background-color:#4B515D;"/>
+                            {%elif eachsession.Status == "BlackOut"%}
+                              
+                              <input class="btn disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="width:100%; background-color:#000000;"/>  
                             {%else%}
                               
                               <input class="btn disabled" id="{{ eachsession.Buttonid }}" type="button" value="            " style="width:100%; background-color:#000000;"/>

@@ -34,6 +34,7 @@
 
     <form  action="." method="POST">{% csrf_token %}
             <input id="confirmBooking" type="submit" value="Confirm Booking" />
+            <input type="hidden" id="CouponUsed" name="CouponUsed" value="No"/>
     </form>
 
 

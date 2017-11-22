@@ -212,24 +212,41 @@ class Booking(models.Model):
 	commission = models.FloatField(default=0, null=True)
 	#status = "not yet begun","locked", "end", "cancelled"
 	status = models.CharField(max_length=20)
+
 	def __str__(self):
 		return '%s booked %s' %(self.studentID.user.username, self.tutorID.user.username)
+	def createPayment(self):
+		p = Payment.objects.create_payment(self.studentID, self.tutorID, self.id, self.totalPayable, "TP")
+		p.create_transaction()
+		return p
 
 
 class TransactionManager(models.Manager):
-	def create_transaction(self, payer, receiver, amount, booking_id, action, timestamp):
-		t = self.create(payer=payer, receiver=receiver, amount=amount, booking_id=booking_id, action=action, timestamp=timestamp)
+	def create_transaction(self, senderID, receiverID, transactionAmount, bookingID, action, timestamp):
+		t = self.create(senderID=senderID, receiverID=receiverID, transactionAmount=transactionAmount, bookingID=bookingID, action=action, timestamp=timestamp)
 		return t
+	def execute_transaction(self):
+		w = Wallet.objects.get(self.senderID)
+		if (self.choices == "TP"):
+			w.balance -= totalPayable
+		elif (self.choices == "TS"):
+			w.balance += totalPayable
+		print "wallet is updated!"
+		print w.balance
+		w.save()
+
 
 class Transaction(models.Model):
-	timestamp = models.DateTimeField(default = timezone.now)
+	timestamp = models.DateTimeField(default = timezone.localtime(timezone.now()))
 	AV = "Add Value"
 	RD = "Refund"
-	TP = "Tutorial Payment"
+	TP = "Tutorial Payment"	
+	TS = "Tutorial Salary"
 	choices = (
 		(AV, 'Add Value'),
 		(RD, 'Refund'),
 		(TP, 'Tutorial Payment'),
+		(TS, 'Tutorial Salary'),
 		)
 	senderID = models.ForeignKey(User, related_name='senderID', on_delete=models.CASCADE, default = "")
 	receiverID = models.ForeignKey(User, related_name='receiverID', on_delete=models.CASCADE, default = "")
@@ -278,11 +295,49 @@ class Coupon(models.Model):
 	endDateTime = models.DateTimeField(auto_now_add = False, default = timezone.now)
 	objects = CouponManager()
 	def __str__(self):
-		return '%s' %(self.CouponCode)
+		return '%s' %(self.couponCode)
 
 class Review(models.Model):
 	studentID = models.ForeignKey(Student, related_name='r_student', on_delete=models.CASCADE)
 	tutorID = models.ForeignKey(Tutor, related_name='r_tutor', on_delete=models.CASCADE)
 	description = models.TextField()
 	rate = models.FloatField(default=0, null=True)
+
+class BlackoutManager(models.Manager):
+	def create_blackout(self, tutorID, date, startTime, endTime):
+		blackout = self.create(tutorID=tutorID, date=date, startTime=startTime, endTime=endTime)
+		return blackout
+
+class Blackout(models.Model):
+	tutorID = models.ForeignKey(Tutor, on_delete=models.CASCADE)
+	date = models.DateField(auto_now_add=False)
+	startTime = models.TimeField(auto_now_add=False)
+	endTime = models.TimeField(auto_now_add=False)
+	objects = BlackoutManager()
+
+class PaymentManager(models.Manager):
+	def create_payment(self, senderID, receiverID, bookingID, totalPayable, paymentType):
+		payment = self.create(senderID=senderID, receiverID=receiverID, bookingID=bookingID, totalPayable=totalPayable, paymentType=paymentType)
+		return payment
+	def create_transaction(self):
+		outgoing = Transaction.objects.create_transaction(self.senderID, mytutors, self.totalPayable, self.bookingID, self.totalPayable, "TP")
+		outgoing.save()
+		incoming = Transaction.objects.create_transaction(mytutors, self.receiverID, self.totalPayable, self.bookingID, self.totalPayable, "TS")
+		incoming.save()
+		outgoing.execute_transaction()
+		incoming.execute_transaction()
+
+class Payment(models.Model):
+	senderID = models.ForeignKey(User, related_name='p_senderID', on_delete=models.CASCADE, default = "")
+	receiverID = models.ForeignKey(User, related_name='p_receiverID', on_delete=models.CASCADE, default = "")
+	bookingID = models.ForeignKey(Booking, related_name='p_bookingID', on_delete=models.CASCADE, default = "")
+	totalPayable = models.FloatField(null=False)
+	TP = "Tutorial Payment"
+	paymentType = (
+		(TP, 'Tutorial Payment'),
+		)
 	
+
+
+
+

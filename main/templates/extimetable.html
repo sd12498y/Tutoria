@@ -75,6 +75,16 @@ function reply_click(clicked_id)
 	<!-- Olivia: add form for button -->
   
 	   <input id="nextWeek" type="submit" value="" onclick="toggle_visibility('thisWeekButtonForm', 'nextWeekButtonForm')" />
+
+
+     <input class="btn disabled" id="" type="button" value="Free" style="width:100px; background-color:#fff8e1;"/>
+     <input class="btn disabled" id="" type="button" value="Booked" style="width:100px; background-color:#004d40;"/>     
+     <input class="btn disabled" id="" type="button" value="Same Day" style="width:100px; background-color:#4B515D;"/> 
+     <input class="btn disabled" id="" type="button" value="Black Out" style="width:100px; background-color:#000000;"/>     
+     <input class="btn disabled" id="" type="button" value="Unavailable" style="width:100px; background-color:#000000;"/>
+                             
+   
+                              
 	   {% include 'thisweek_extimetable.html' %}
      {% block thisweek %}
      {% endblock %}

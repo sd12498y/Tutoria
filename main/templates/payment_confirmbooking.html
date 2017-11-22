@@ -14,19 +14,34 @@ function is_CouponValid()
    
     //window.alert "IsCouponValid";
 
-    //var ValidCouponList = {{ ValidCouponList }}
     
     var InputCouponCode = document.getElementById('InCoupon').value;
     alert ("Input: "+InputCouponCode);
+
+
+    //if coupon is not valid    
+    document.getElementById('CouponUsed').value = "No";
+
+    //if coupon is valid
+    //document.getElementById('CouponUsed').value = "Yes";
+
+
+
+
+    //var ValidCoupon = {{ ValidCouponList }};
+
+    /*
+
+    if( ValidCoupon.indexOf("InputCoupon") > -1 ) {
+        alert("COUPON FOUND!");
+    }
+    else{
+        alert("COUPON NOT FOUND!");
+    }
+    */
     
     //var decoded = JSON.load(VList);
 
-
-    for (var i = 0; i < VList.fields.length; i++) {
-        var eachfield = VList.fields[i];
-        alert(eachfield.couponCode);
-    }
- 
     /*
     alert(VList)
 
