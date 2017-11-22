@@ -110,7 +110,7 @@ def extimetable(request, TutorID):
         TodayDate = timezone.localtime(timezone.now()).date()
         
         StartDate = TodayDate - timedelta(days=TodayDate.weekday()) - timedelta(days=1)
-        EndDate = StartDate + timedelta(days=6)
+        EndDate = StartDate + timedelta(days=13)
         #Dates.append(EndDate)
         
         for n in range(int((EndDate - StartDate).days)+1):
@@ -125,13 +125,16 @@ def extimetable(request, TutorID):
         found = 0
         appendonce = 0
 
+        thisWeekDates = Dates[:7]
+        nextWeekDates = Dates[-7:]
+
+
 
         #BookSessionOfTutor = Booking.objects.filter(tutor = TargetTutor.user)
 
         BookSessionOfTutor = Booking.objects.filter(Q(status="not yet begun") | Q(status="locked"), tutorID = TargetTutor.user, sessionDate__gte = TodayDate, sessionDate__lte = EndDate)
         SameDayBooking = Booking.objects.filter(Q(status="not yet begun") | Q(status="locked"), tutorID = TargetTutor.user, sessionDate__gte = TodayDate, sessionDate__lte = EndDate, studentID = request.user.myuser)
-        print "length of SameDayBooking"
-        print len(SameDayBooking)
+
         SameDay=list(o.sessionDate for o in SameDayBooking)
         #TutorCourse = list(c.course for c in TutorCourseFullRecord)
         #CForm = CourseForm(instance=TargetTutor.user);
@@ -139,8 +142,7 @@ def extimetable(request, TutorID):
         #get respective session interval
         sessionInterval = TargetTutor.getSessionInterval()
         for eachdate in Dates:
-            print ("eachdate: ")
-            print (eachdate)
+            
             DateBookSessionOfTutor = Booking.objects.filter(tutorID = TargetTutor.user, sessionDate = eachdate)
             
             #24*60 is number of minutes in a day
@@ -153,18 +155,23 @@ def extimetable(request, TutorID):
                 found = 0
                 
                 
-                tempbuttonid = eachdate.strftime('%Y%m%d') + smoketest.strftime('%H%M%S')
+                tempbuttonid = eachdate.strftime('%Y%m%d') + smoketest.strftime('%H%M%S') + str(sessionInterval)
+
                 #hereeeeeeee
                 #if pytz.timezone("Asia/Hong_Kong").normalize(smoketest <= timezone.now():
                 
                 dtsmoketest = tz.localize(smoketest, is_dst=True)
                 #print(dtsmoketest)
                 #print timezone.now()
-                if (eachdate<timezone.localtime(timezone.now()).date()):
+                if (eachdate<=timezone.localtime(timezone.now()).date()):
                     #OTB = Out of bound
-                    tempsession = Session(eachdate, eachhour, (smoketest+timedelta(hours=1)), "OOB", eachhour, tempbuttonid)
-                elif (dtsmoketest <= timezone.localtime(timezone.now()) and eachdate<=timezone.localtime(timezone.now()).date()):
-                    tempsession = Session(eachdate, eachhour, (smoketest+timedelta(hours=1)), "OOB", eachhour, tempbuttonid)
+                    tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
+                
+                elif (eachdate>TodayDate + timedelta(days=7)):
+                    tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
+                
+                elif (dtsmoketest <= timezone.localtime(timezone.now()) and eachdate<=(timezone.localtime(timezone.now()).date() + timedelta(days=1))):
+                    tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
 
                 else:
 
@@ -177,20 +184,20 @@ def extimetable(request, TutorID):
                         if strx == eachhour:
                             #print "yes"
                             found = 1
-                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(hours=1)), "Booked", eachhour, tempbuttonid)
+                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "Booked", eachhour, tempbuttonid)
                         
                     if found == 0:
 
                         
                         if eachdate in SameDay:                        
-                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(hours=1)), "SameDay", eachhour, tempbuttonid)
+                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "SameDay", eachhour, tempbuttonid)
                         else:
-                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(hours=1)), "Free", eachhour, tempbuttonid)
+                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "Free", eachhour, tempbuttonid)
                     
                 ListOfSessions.append(tempsession)
         
         template = loader.get_template('extimetable.html')
-        context = {'TargetTutor': TargetTutor, 'TodayDate': TodayDate, 'StartDate': StartDate, "EndDate": EndDate, "Dates": Dates, "Times": Hours, "ListOfSessions": ListOfSessions, 'TutorCourse' : TutorCourse}
+        context = {'TargetTutor': TargetTutor, 'TodayDate': TodayDate, 'StartDate': StartDate, "EndDate": EndDate, "Dates": Dates, "thisWeekDates": thisWeekDates, "nextWeekDates":nextWeekDates, "Times": Hours, "ListOfSessions": ListOfSessions, 'TutorCourse' : TutorCourse}
         return HttpResponse(template.render(context, request))
     if request.method == "POST":
         Pressedbutton = request.POST.get('eachbutton', '')
@@ -282,11 +289,14 @@ def confirmBooking(request, TutorID):
         #Pressedbutton = request.GET.get('eachbutton', '')
         buttonid = Pressedbutton
 
+        sessionInterval = buttonid[-2:]
+        
         date = datetime.strptime(buttonid[:8], '%Y%m%d').date()
-        ChosenTime = datetime.strptime(buttonid[-6:], '%H%M%S').time()
+        ChosenTime = datetime.strptime(buttonid[8:13], '%H%M%S').time()
+        
         start=ChosenTime
         #assume 1hour first
-        newhourdatetime = datetime.strptime(buttonid, '%Y%m%d%H%M%S')+timedelta(hours=1)
+        newhourdatetime = datetime.strptime(buttonid[:14], '%Y%m%d%H%M%S')+timedelta(minutes=int(sessionInterval))
         end = newhourdatetime.time()
         #assume bookings are all not yet begun
 
