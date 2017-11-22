@@ -1,0 +1,34 @@
+{% extends 'registerForm.html' %}
+{% block lowerHalf %}
+<script type="text/javascript">
+  function toggleHourlyRate(){
+    var private = document.getElementById("private").value;
+  }
+</script>       
+      <label>School:</label>
+      <div class="form-group">
+      <input type="text" class="form-control is-invalid" name="school" id="school" placeholder="Your School" required="" autofocus="" onkeyup="validateSchool()" />
+      <div class="invalid-feedback" id="schoolFeedback">
+              Please provide your university name.
+       </div>
+  	  </div>
+      <div class="form-group">
+          <label for="comment">Description:</label>
+          <textarea class="form-control" rows="5" id="comment"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="col-md-6 radio">
+        <label> <input type="radio" id="private" name="type" value="">  Private Tutor  </label>
+      </div>
+        <div class="col-md-6 radio">
+        <label> <input type="radio" id="contract" name="type" value="">  Contracted Tutor  </label>
+      </div>
+      </div>
+      <div class="form-group">
+      <label for="hourly">Hourly rate:</label>
+        <input type="text" class="form-control" id="hourly">
+      </div>
+      <button class="btn btn-md btn-info btn-block" type="submit" value="register_student">Register</button>
+      <a href = "{% url 'main:register' %}" class="btn btn-md btn-secondary btn-block" role="button" value="back">Back</a>
+      <i style="text-align:right; color:#A9A9A9">Step 2 of 2</i>
+{% endblock %}

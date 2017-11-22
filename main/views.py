@@ -5,12 +5,11 @@ import time
 import json
 from django.contrib.auth.models import User
 from datetime import datetime, date, time, timedelta
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render, render_to_response, redirect
 from django.views import generic
 from django.contrib import auth
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
-from .models import myUser, Tutor, PrivateTutor, ContractTutor, Booking, Transaction, Wallet, Session, Course, Coupon
 from .models import myUser, Tutor, PrivateTutor, ContractTutor, Booking, Transaction, Wallet, Session, Course, Coupon, Student
 from django.db.models import Q
 from notifications.signals import notify
@@ -34,7 +33,16 @@ import pytz
 from django.core import serializers
 
 # Create your views here.
-
+def checkUsername(request):
+    if request.method == 'GET':
+        username = request.GET.get('username',"")
+        exists = User.objects.filter(username=username).exists()
+        return JsonResponse({'exists': exists})
+def checkEmail(request):
+    if request.method == 'GET':
+        email = request.GET.get('email',"")
+        exists = User.objects.filter(email=email).exists()
+        return JsonResponse({'exists': exists})
 def getCommissionRate():
     return 0.05
 
@@ -68,8 +76,26 @@ def reg_student(request):
             myUsr.save()
             stud = Student.objects.create_student(myUsr, school)
             stud.save()
-            return HttpResponseRedirect(reverse('main:reg_success'))
+            return redirect('main:reg_success', type="student")
     return render(request,'reg_student.html')
+
+def reg_tutor(request):
+    if request.method=="POST":
+        form = StudentRegisterForm(request.POST, request.FILES)
+        if form.is_valid():
+            usr = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password1'])
+            usr.first_name = form.cleaned_data['firstName']
+            usr.last_name = form.cleaned_data['lastName']
+            myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
+            school = request.POST['school']
+            usr.save()
+            wallet = Wallet(user=usr,balance=0)
+            wallet.save()
+            myUsr.save()
+            stud = Student.objects.create_student(myUsr, school)
+            stud.save()
+            return redirect('main:reg_success', type="student")
+    return render(request,'reg_tutor.html')
 
 def reg_success(request, type):
     return render(request,'registerSuccess.html', {'type': type,})
