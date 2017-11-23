@@ -1,0 +1,71 @@
+
+
+<script type="text/javascript">
+var global_buttonid;
+var status;
+
+var coursename;
+
+var firstload = 1;
+
+var settimetable = 0;
+function toggle_visibility(this_id, next_id) {
+   var thisweek = document.getElementById(this_id);
+   var nextweek = document.getElementById(next_id);
+   if(thisweek.style.display == 'block'){
+      thisweek.style.display = 'none';
+      nextweek.style.display = 'block';
+      document.getElementById('nextWeek').value = "Previous Week";
+    }
+
+   else{
+      thisweek.style.display = 'block';
+      nextweek.style.display = 'none';
+      document.getElementById('nextWeek').value = "Next Week";
+   }
+}
+
+function default_visibility(this_id, next_id){
+  var thisweek = document.getElementById(this_id);
+  var nextweek = document.getElementById(next_id);
+  if (firstload == 1){
+    firstload = 0;
+    thisweek.style.display = 'block';
+    nextweek.style.display = 'none';
+    document.getElementById('nextWeek').value = "Next Week";
+
+  }
+
+}
+
+
+
+</script>
+
+
+    
+	
+	
+	<!-- Olivia: add form for button -->
+  
+	   <input id="nextWeek" type="submit" value="" onclick="toggle_visibility('thisWeekButtonForm', 'nextWeekButtonForm')" />
+
+
+     
+                             
+   
+                              
+	   {% include 'thisweek_timetable.html' %}
+     {% block thisweek %}
+     {% endblock %}
+     
+     {% include 'nextweek_timetable.html' %}
+     {% block nextweek %}
+     {% endblock %}
+ 
+
+     <script>pressed()</script>
+     <script>default_visibility('thisWeekButtonForm', 'nextWeekButtonForm');</script>
+
+  {% block timetable %}
+  {% endblock %}

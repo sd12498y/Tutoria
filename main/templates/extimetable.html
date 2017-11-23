@@ -10,34 +10,7 @@ var coursename;
 var firstload = 1;
 
 var settimetable = 0;
-function toggle_visibility(this_id, next_id) {
-   var thisweek = document.getElementById(this_id);
-   var nextweek = document.getElementById(next_id);
-   if(thisweek.style.display == 'block'){
-      thisweek.style.display = 'none';
-      nextweek.style.display = 'block';
-      document.getElementById('nextWeek').value = "Previous Week";
-    }
 
-   else{
-      thisweek.style.display = 'block';
-      nextweek.style.display = 'none';
-      document.getElementById('nextWeek').value = "Next Week";
-   }
-}
-
-function default_visibility(this_id, next_id){
-  var thisweek = document.getElementById(this_id);
-  var nextweek = document.getElementById(next_id);
-  if (firstload == 1){
-    firstload = 0;
-    thisweek.style.display = 'block';
-    nextweek.style.display = 'none';
-    document.getElementById('nextWeek').value = "Next Week";
-
-  }
-
-}
 
 
 function reply_click(clicked_id)
@@ -54,10 +27,35 @@ function reply_click(clicked_id)
     //document.ButtonForm.buttonid.value = global_buttonid;
 }
 
+function pressed(){
 
+  
+  var fp = document.getElementsByClassName("freePress");
+  
+
+  var i;
+  for (i = 0; i < fp.length; i++) {
+      fp[i].disabled = false;
+      fp[i].style.backgroundColor= "#fff8e1";
+      fp[i].value = "Book";
+      
+      
+
+  }
+
+  var op = document.querySelectorAll('.BookedPress,.SameDayPress,.BlackOutPress,.OOBPress');
+  
+  for (i = 0; i < op.length; i++) {
+      op[i].disabled = true;
+      op[i].style.backgroundColor= "#000000";
+      
+  }
+  
+}
 
 
 </script>
+    
 
 
     
@@ -69,31 +67,25 @@ function reply_click(clicked_id)
 
     {% include 'tutorUpperExtimetable.html' %}
     {% block shortline %}
+    {% endblock %}
 
-	
-	
-	<!-- Olivia: add form for button -->
+	 
   
-	   <input id="nextWeek" type="submit" value="" onclick="toggle_visibility('thisWeekButtonForm', 'nextWeekButtonForm')" />
-
-
-     <input class="btn disabled" id="" type="button" value="Free" style="width:100px; background-color:#fff8e1;"/>
-     <input class="btn disabled" id="" type="button" value="Booked" style="width:100px; background-color:#004d40;"/>     
-     <input class="btn disabled" id="" type="button" value="Same Day" style="width:100px; background-color:#4B515D;"/> 
-     <input class="btn disabled" id="" type="button" value="Black Out" style="width:100px; background-color:#000000;"/>     
-     <input class="btn disabled" id="" type="button" value="Unavailable" style="width:100px; background-color:#000000;"/>
-                             
-   
-                              
-	   {% include 'thisweek_extimetable.html' %}
-     {% block thisweek %}
-     {% endblock %}
-     {% include 'nextweek_extimetable.html' %}
-     {% block nextweek %}
-     <script>default_visibility('thisWeekButtonForm', 'nextWeekButtonForm');</script>
-
-     {% endblock %}
+	   
 
      
-         {% endblock %}
-      {% endblock %}
+
+   
+                             
+     {% include 'timetable.html' %}
+     {% block timetable %}
+     {% endblock %}
+
+
+
+
+
+     
+
+{% endblock %}
+

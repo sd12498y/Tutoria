@@ -14,6 +14,8 @@ from django.utils.timezone import localtime
 from model_utils.managers import InheritanceManager
 from django.core import serializers
 from django.http import JsonResponse
+import time
+from datetime import datetime, date, time, timedelta
 
 
 class myUserManager(models.Manager):
@@ -35,6 +37,9 @@ class StudentManager(models.Manager):
 	def create_student(self, user, university):
 		student = self.create(user=user, university=university)
 		return student
+	def getRelatedBooking(self, sessionDate):
+		relatedBooking = Booking.objects.filter(Q(status="not yet begun") | Q(status="locked")| Q(status="completed"), sessionDate = sessionDate)
+		return relatedBooking
 
 class Student (models.Model):
 	user = models.OneToOneField(myUser, on_delete=models.CASCADE)
@@ -49,6 +54,10 @@ class TutorManager(models.Manager):
 	def create_tutor(self, user, university, description):
 		tutor = self.create(user=user, university=university, description=description)
 		return tutor
+	def getRelatedBooking(self, sessionDate):
+		relatedBooking = Booking.objects.filter(Q(status="not yet begun") | Q(status="locked")| Q(status="completed"), tutorID = self.user, sessionDate = sessionDate)
+		return relatedBooking
+
 
 class Tutor(models.Model):
 	
@@ -153,12 +162,55 @@ class Session (models.Model):
 		self.EndTime = EndTime
 		self.Status = Status
 		self.StrStartTime = StrStartTime
-		self.Buttonid = Buttonid	
+		self.Buttonid = Buttonid
+
+class WalletManager(models.Manager):
+	def pay(self, userID, value):
+		print ("pay()")
+		target = Wallet.objects.get(user = userID)
+		if (target.enoughMoney(value) == True):
+			print ("enoughMoney() returns true")
+			company = User.objects.get(username = "mytutors")
+			target.balance -= value
+			target.save()
+			notify.send(company, recipient=target.user, verb='$'+str(value)+' has been withdrawn from your wallet')
+			send_mail(
+			    '$'+str(value)+' has been withdrawn from your wallet',
+			    'Here is the message.',
+			    [company.email],
+			    [target.user.email],
+			    fail_silently=False,
+			)
+			return True
+		else:
+			print ("enoughMoney() returns false")
+			return False
+	def receive(self, userID, value):
+		target = Wallet.objects.get(user = userID)		
+		company = User.objects.get(username = "mytutors")
+		target.balance += value
+		target.save()
+		notify.send(company, recipient=target.user, verb='$'+str(value)+' has been added from your wallet')
+		send_mail(
+		    '$'+str(value)+' has been added from your wallet',
+		    'Here is the message.',
+		    [company.email],
+		    [target.user.email],
+		    fail_silently=False,
+		)
+
 
 class Wallet(models.Model):
 	user = models.OneToOneField(User, on_delete=models.CASCADE)
 	balance = models.FloatField()
-
+	objects = WalletManager()
+	def enoughMoney(self, value):
+		print ("enoughMoney()")
+		if (self.balance < value):
+			return False
+		else:
+			return True
+			
 	def addValue(self,value):
 		self.balance += value
 		self.save()
@@ -176,8 +228,8 @@ class Wallet(models.Model):
 	def refund(self,value,tutor):
 		self.balance += value
 		self.save()
-		t = Transaction(payer=self.user , receiver=self.user, amount=value, action="Refund")
-		t.save()
+		#t = Transaction(payer=mytutors , receiver=self.user, amount=value, action="Refund")
+		#t.save()
 		notify.send(self.user, recipient=tutor.user, verb='Booking has been cancelled.' )
 		notify.send(self.user, recipient=self.user, verb='Booking has sucessfully been cancelled.' )
 		send_mail(
@@ -196,8 +248,10 @@ class Wallet(models.Model):
 		return '%s\'s Wallet' %(self.user.username)
 
 	def getHistory(self):
-		t_set = Transaction.objects.filter(Q(payer=self.user) | Q(receiver=self.user)).order_by('-timestamp')[:7]
+		TodayDate = timezone.localtime(timezone.now()).date()
+		t_set = Transaction.objects.filter(Q(senderID=self.user) | Q(receiverID=self.user), timestamp__gte = (TodayDate - timedelta(days=30))).order_by('-timestamp')
 		return t_set
+
 
 
 class Booking(models.Model):
@@ -216,24 +270,20 @@ class Booking(models.Model):
 	def __str__(self):
 		return '%s booked %s' %(self.studentID.user.username, self.tutorID.user.username)
 	def createPayment(self):
-		p = Payment.objects.create_payment(self.studentID, self.tutorID, self.id, self.totalPayable, "TP")
-		p.create_transaction()
-		return p
+		company = User.objects.get(username = "mytutors")
+
+		p = Payment.objects.create_payment(self.studentID.user, company, self.id, self.totalPayable, Payment.TP)
+		payflag = p.makePayment()
+		if (payflag == False):
+			return False
+		else:
+			return payflag
 
 
 class TransactionManager(models.Manager):
-	def create_transaction(self, senderID, receiverID, transactionAmount, bookingID, action, timestamp):
-		t = self.create(senderID=senderID, receiverID=receiverID, transactionAmount=transactionAmount, bookingID=bookingID, action=action, timestamp=timestamp)
+	def create_transaction(self, senderID, receiverID, transactionAmount, bookingID, action):
+		t = self.create(senderID=senderID, receiverID=receiverID, transactionAmount=transactionAmount, bookingID=bookingID, action=action)
 		return t
-	def execute_transaction(self):
-		w = Wallet.objects.get(self.senderID)
-		if (self.choices == "TP"):
-			w.balance -= totalPayable
-		elif (self.choices == "TS"):
-			w.balance += totalPayable
-		print "wallet is updated!"
-		print w.balance
-		w.save()
 
 
 class Transaction(models.Model):
@@ -246,7 +296,6 @@ class Transaction(models.Model):
 		(AV, 'Add Value'),
 		(RD, 'Refund'),
 		(TP, 'Tutorial Payment'),
-		(TS, 'Tutorial Salary'),
 		)
 	senderID = models.ForeignKey(User, related_name='senderID', on_delete=models.CASCADE, default = "")
 	receiverID = models.ForeignKey(User, related_name='receiverID', on_delete=models.CASCADE, default = "")
@@ -262,6 +311,7 @@ class Transaction(models.Model):
 
 	def __str__(self):
 		return '%s to %s : %s' %(self.payer.user.username, self.receiver.user.username, self.action)
+
 class CourseCatalogue(models.Model):
 	courseCode = models.CharField(max_length=8, default="") #in format: COMP1234
 	courseName = models.CharField(max_length=50, default="")
@@ -284,8 +334,8 @@ class Tag(models.Model):
 
 
 class CouponManager(models.Manager):
-	def getValidCoupon(self):		
-		results = self.filter(startDateTime__lte = timezone.localtime(timezone.now()), endDateTime__gte = timezone.localtime(timezone.now()))
+	def isCouponValid(self, inputcode):		
+		results = self.filter(couponCode = inputcode, startDateTime__lte = timezone.localtime(timezone.now()), endDateTime__gte = timezone.localtime(timezone.now()))
 		return results
 		#return JsonResponse(data=list(results.values()), safe=False)
 
@@ -316,27 +366,40 @@ class Blackout(models.Model):
 	objects = BlackoutManager()
 
 class PaymentManager(models.Manager):
-	def create_payment(self, senderID, receiverID, bookingID, totalPayable, paymentType):
-		payment = self.create(senderID=senderID, receiverID=receiverID, bookingID=bookingID, totalPayable=totalPayable, paymentType=paymentType)
+	def create_payment(self, senderID, receiverID, bookingID, totalPayable, ptype):
+		payment = self.create(senderID=senderID, receiverID=receiverID, bookingID=bookingID, totalPayable=totalPayable, ptype=ptype)
 		return payment
-	def create_transaction(self):
-		outgoing = Transaction.objects.create_transaction(self.senderID, mytutors, self.totalPayable, self.bookingID, self.totalPayable, "TP")
-		outgoing.save()
-		incoming = Transaction.objects.create_transaction(mytutors, self.receiverID, self.totalPayable, self.bookingID, self.totalPayable, "TS")
-		incoming.save()
-		outgoing.execute_transaction()
-		incoming.execute_transaction()
 
 class Payment(models.Model):
 	senderID = models.ForeignKey(User, related_name='p_senderID', on_delete=models.CASCADE, default = "")
 	receiverID = models.ForeignKey(User, related_name='p_receiverID', on_delete=models.CASCADE, default = "")
-	bookingID = models.ForeignKey(Booking, related_name='p_bookingID', on_delete=models.CASCADE, default = "")
+	bookingID = models.ForeignKey(Booking, related_name='p_bookingID', on_delete=models.CASCADE, null=True, default = "")
 	totalPayable = models.FloatField(null=False)
 	TP = "Tutorial Payment"
-	paymentType = (
+	PAYMENTCHOICES = (
 		(TP, 'Tutorial Payment'),
 		)
-	
+	ptype = models.CharField(
+        max_length=2,
+        choices=PAYMENTCHOICES,
+        default=TP,
+    )
+	objects = PaymentManager()
+	def makePayment(self):
+		#get mytutor user instance
+		print ("makePayment")
+
+		if (Wallet.objects.pay(self.senderID, self.totalPayable) == True):
+			print ("pay returns True")
+			Wallet.objects.receive(self.receiverID, self.totalPayable)			
+			return self
+		else:
+			print ("pay returns False")
+			return False
+	def createTransaction(self):
+		t = Transaction.objects.create_transaction(self.senderID, self.receiverID, self.totalPayable, self.bookingID, Transaction.TP)
+		t.save()
+
 
 
 

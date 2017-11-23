@@ -26,9 +26,10 @@
 			    {% for record in transaction_history %}
 			     <div class="row row-content">
         			<div class="col-xs-12 col-md-8">
-        				<p>Payer: {{record.payer.user.username}}</p>
-        				<p>Receiver: {{record.receiver.user.username}}</p>
-			       	 	<p>Amount: {{ record.amount }}</p>
+        				<p>Payer: {{record.senderID.username}}</p>
+        				<p>Receiver: {{record.receiverID.username}}</p>
+			       	 	<p>Amount: ${{ record.transactionAmount }}</p>			       	 	
+			       	 	<p>Booking ID: {{ record.bookingID.id }}</p>
 			       	 	<p>{{record.action}}</p>
 			       	 	<p>At: {{record.timestamp}}</p>
 			        </div>
