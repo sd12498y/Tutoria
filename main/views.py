@@ -24,7 +24,7 @@ from django.utils import timezone
 from django.utils.timezone import localtime
 import pprint
 import sys
-from .forms import SessionForm, StudentRegisterForm
+from .forms import SessionForm, StudentRegisterForm, TutorRegisterForm, BothRegisterForm
 
 #Olivia: 7/11/17 14:50
 from django.db.models import Q
@@ -59,6 +59,9 @@ def register(request):
             return HttpResponseRedirect(reverse('main:reg_student'))
         elif 'reg_tutor' in request.POST:
             return HttpResponseRedirect(reverse('main:reg_tutor'))
+        else:
+            return HttpResponseRedirect(reverse('main:reg_both'))
+
     return HttpResponse(template.render(context, request))
 
 def reg_student(request):
@@ -81,21 +84,48 @@ def reg_student(request):
 
 def reg_tutor(request):
     if request.method=="POST":
-        form = StudentRegisterForm(request.POST, request.FILES)
+        form = TutorRegisterForm(request.POST, request.FILES)
         if form.is_valid():
             usr = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password1'])
             usr.first_name = form.cleaned_data['firstName']
             usr.last_name = form.cleaned_data['lastName']
             myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
             school = request.POST['school']
-            usr.save()
             wallet = Wallet(user=usr,balance=0)
+            usr.save()
             wallet.save()
             myUsr.save()
-            stud = Student.objects.create_student(myUsr, school)
-            stud.save()
-            return redirect('main:reg_success', type="student")
+            if form.cleaned_data['type']=="private":
+                tutor = PrivateTutor.objectManager.create_tutor(myUsr, school,form.cleaned_data['description'], form.cleaned_data['type'], form.cleaned_data['hourly_rate'])
+            else:
+                tutor = ContractTutor.objectManager.create_tutor(myUsr, school,form.cleaned_data['description'], form.cleaned_data['type'], form.cleaned_data['hourly_rate'])          
+            tutor.save()
+            return redirect('main:reg_success', type= form.cleaned_data['type'] + "tutor")
     return render(request,'reg_tutor.html')
+
+def reg_both(request):
+    if request.method=="POST":
+        form = BothRegisterForm(request.POST, request.FILES)
+        if form.is_valid():
+            usr = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password1'])
+            usr.first_name = form.cleaned_data['firstName']
+            usr.last_name = form.cleaned_data['lastName']
+            myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
+            school1 = form.cleaned_data['school1']
+            school2 = form.cleaned_data['school2']
+            wallet = Wallet(user=usr,balance=0)
+            usr.save()
+            wallet.save()
+            myUsr.save()
+            stud = Student.objects.create_student(myUsr, school1)
+            stud.save()
+            if form.cleaned_data['type']=="private":
+                tutor = PrivateTutor.objectManager.create_tutor(myUsr, school2,form.cleaned_data['description'], form.cleaned_data['type'], form.cleaned_data['hourly_rate'])
+            else:
+                tutor = ContractTutor.objectManager.create_tutor(myUsr, school2,form.cleaned_data['description'], form.cleaned_data['type'], form.cleaned_data['hourly_rate'])          
+            tutor.save()
+            return redirect('main:reg_success', type= "both")
+    return render(request,'reg_both.html')
 
 def reg_success(request, type):
     return render(request,'registerSuccess.html', {'type': type,})

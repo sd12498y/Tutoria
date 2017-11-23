@@ -11,6 +11,7 @@ urlpatterns = [
 	url(r'^register/$', views.register, name='register'),
 	url(r'^register/student/$', views.reg_student, name='reg_student'),
 	url(r'^register/tutor/$', views.reg_tutor, name='reg_tutor'),
+	url(r'^register/both/$', views.reg_both, name='reg_both'),
 	url(r'^register/(?P<type>\w+)/success$', views.reg_success, name='reg_success'),
 	url(r'^wallet/$', views.WalletView.as_view(), name='wallet'),
 	url(r'^wallet/addValue/$', views.addValue, name='addValue'),

@@ -46,9 +46,20 @@ class Student (models.Model):
 
 
 class TutorManager(models.Manager):
-	def create_tutor(self, user, university, description):
-		tutor = self.create(user=user, university=university, description=description)
-		return tutor
+	def create_tutor(self, user, university, description, type, hourlyRate):
+		if type=="private":
+			return self.create(user=user, university=university, description=description, hourlyRate=hourlyRate)
+		else:
+			return self.create(user=user, university=university, description=description)
+		'''
+		if type == "private":
+			tutor = self.create(user=user, university=university, description=description)
+			private = PrivateTutor(tutor_ptr=tutor)
+			private.hourlyRate = hourlyRate
+			return private
+		elif type=="contract":
+			contract = ContractTutor(tutor_ptr=tutor)
+			return contract'''
 
 class Tutor(models.Model):
 	
@@ -56,7 +67,7 @@ class Tutor(models.Model):
 	university = models.CharField(max_length=50)
 	description = models.TextField()
 	
-	#objects = TutorManager()
+	objectManager = TutorManager()
 	objects = InheritanceManager()
 
 	def __str__(self):
