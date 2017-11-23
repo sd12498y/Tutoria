@@ -5,7 +5,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import myUser,Tutor,PrivateTutor, ContractTutor, Student,Wallet,Transaction,Booking,Tag,Course, CourseCatalogue, Review
+from .models import myUser,Tutor,PrivateTutor, ContractTutor, Student,Wallet,Transaction,Booking,Tag,Course, CourseCatalogue, Review, Blackout, Coupon, Payment
 
 admin.site.register(myUser)
 admin.site.register(Tutor)
@@ -19,4 +19,7 @@ admin.site.register(Tag)
 admin.site.register(Course)
 admin.site.register(CourseCatalogue)
 admin.site.register(Review)
+admin.site.register(Blackout)
+admin.site.register(Coupon)
+admin.site.register(Payment)
 
