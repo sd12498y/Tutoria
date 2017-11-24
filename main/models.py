@@ -173,7 +173,7 @@ class Wallet(models.Model):
 	def addValue(self,value):
 		self.balance += value
 		self.save()
-		t = Transaction(payer=self.user, receiver=self.user, amount=value, action="Add Value")
+		t = Transaction(senderID=self.user, receiverID=self.user, transactionAmount=value, action="Add Value")
 		t.save()
 		notify.send(self.user, recipient=self.user, verb='New value has been added to your wallet')
 		send_mail(
@@ -187,7 +187,7 @@ class Wallet(models.Model):
 	def refund(self,value,tutor):
 		self.balance += value
 		self.save()
-		t = Transaction(payer=self.user , receiver=self.user, amount=value, action="Refund")
+		t = Transaction(senderID=self.user , receiverID=self.user, transactionAmount=value, action="Refund")
 		t.save()
 		notify.send(self.user, recipient=tutor.user, verb='Booking has been cancelled.' )
 		notify.send(self.user, recipient=self.user, verb='Booking has sucessfully been cancelled.' )
@@ -207,7 +207,7 @@ class Wallet(models.Model):
 		return '%s\'s Wallet' %(self.user.username)
 
 	def getHistory(self):
-		t_set = Transaction.objects.filter(Q(payer=self.user) | Q(receiver=self.user)).order_by('-timestamp')[:7]
+		t_set = Transaction.objects.filter(Q(senderID=self.user) | Q(receiverID=self.user)).order_by('-timestamp')[:7]
 		return t_set
 
 

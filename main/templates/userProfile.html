@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load profile_tags %}
+<script type="text/javascript">
+	function editTutor(){
+		document.getElementById("submit").style.display = "block";
+		document.getElementById("cancel").style.display = "block";
+		document.getElementById("edit").style.display = "none";
+		document.getElementById("description").removeAttribute("readonly", "");
+		if (document.getElementById("type").value == 'Private Tutor'){
+			document.getElementById("hourly").removeAttribute("readonly", "");
+		}
+		  r = new XMLHttpRequest();
+		  r.onreadystatechange = function(){
+		    if (this.readyState == 4 && this.status == 200) {
+	    	      var data = JSON.parse(r.responseText);
+			      //console.log(data);
+			      course_list = data.course_list
+			      //console.log(course_list);
+			      for (i in course_list) {
+			      	//console.log(course_list[i]);
+			      	document.getElementById(course_list[i]).checked = true;
+			      }
+
+		    }
+		  }
+		  r.open("GET", "/api/getCourseSet", true);
+		  r.send();
+
+		 document.getElementById("course-catalogue").style.display = "block";
+		return
+	}
+	function toggleCheckBox(id){
+		if(document.getElementById(id).checked == false){
+			document.getElementById(id+"Hidden").removeAttribute("disabled", "");
+		}else{
+			document.getElementById(id+"Hidden").setAttribute("disabled", "");
+		}
+
+	}
+</script>
+<div class="container">
+    <div class="user row row-content">
+    <form action="" class="form-edit-user" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="header">
+   	{% isStudent request.user as student %}
+   	{% isTutor request.user as tutor %}
+   	{% if tutor %}
+   	{% getType request.user as type %}
+   	{% endif %} 
+      <h2>User Profile</h2>
+    </div>
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="firstName">First Name</label>
+            <input type="text" name="firstName" id="firstName" class="form-control is-invalid" placeholder="First name" value={{request.user.first_name}} disabled>
+          </div>
+          <div class="form-group col-md-6">
+            <label for="lastName">Last Name</label>
+            <input type="text" name="lastName" id="lastName" class="form-control is-invalid" placeholder="Last name" 
+            <input type="text" name="firstName" id="firstName" class="form-control is-invalid" placeholder="First name" value={{request.user.last_name}} disabled>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label for="tel">Tel</label>
+            <input type="tel" class="form-control is-invalid" name="tel" id="tel" value="{{ request.user.myuser.tel }}" placeholder="Tel" required="" autofocus="" disabled/>
+          </div>
+          <div class="form-group col-md-8">
+            <label>Email</label>
+            <input type="email" class="form-control is-invalid" name="email" id="email" placeholder="Email" value="{{ request.user.email }}" disabled/>
+          </div>
+        </div>
+      <div class="form-row">
+      	<div class="form-group col-md-12">
+        <label>Username</label>
+        <input type="text" class="form-control is-invalid" id="username" name="username" placeholder="Username" value="{{ request.user.username }}" disabled required="" autofocus=""/>
+  		</div>
+      </div>
+      <div class="form-row" style="display: none;">
+      <div class="form-group col-md-12">
+            <label>Password</label>
+            <input type="password" class="form-control is-invalid" name="password1" id="password1Div" placeholder="Password" required="" onkeyup="validatePassword1()" />
+            <div class="invalid-feedback" id="password1Feedback">
+              Please provide a valid password.
+            </div>
+            <small id="passwordHelpBlock" class="form-text text-muted">
+            <i>
+            	<ul>
+      	      	<li>Your password can't be too similar to your other personal information.</li>
+      	      	<li>Your password must contain at least 8 characters.</li>
+      			<li>Your password can't be a commonly used password.</li>
+      			<li>Your password can't be entirely numeric.</li>
+      		</ul>
+      	</i></small>
+      </div>
+  </div>
+  <div class="form-row" style="display: none;">
+      <div class="form-group col-md-12">
+    		<label>Password Confirmation </label>
+    		<input type="password" class="form-control is-invalid" name="password2" id="password2Div" placeholder="Confirm your Password" required="" onkeyup="validatePassword2()"  />
+        <div class="invalid-feedback" id="password2Feedback">
+        Password doesn't match.
+      </div>
+      </div>
+  </div>
+  <div class="form-row">
+      <div class="form-group col-md-12">
+        <label for="img">Profile picture</label>
+    </div>
+    <div class="col-md-3">
+        <!--<input type="file" name="image" id="img" >-->
+        <img class="media-object pull-left" style="width:90px; padding-right: 10px;" src="{{request.user.myuser.profilePicture.url}}"/>
+      </div>
+  </div>
+</form>
+  </div>
+
+{% if student %}
+  <div class="student">
+  	<form action="" class="form-edit-student" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+  	<div class="row row-content">
+  		      <h2>Student Info</h2>
+  	<div class="form-row">
+      <div class="form-group col-md-12">
+      <label for="school1">You are a student at</label>
+      <input type="text" class="form-control is-invalid" name="school1" id="school1" value=" {{ request.user.myuser.student.university }} " placeholder="" required="" autofocus=""  onkeyup="validateSchool1()" disabled="" />
+      </div>
+      </div>
+  </div>
+</form>
+</div>
+{% endif %}
+{% if tutor %}
+<div class="tutor row row-content">
+	<form action="{% url 'main:updateprofile' %}" class="form-edit-tutor" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+	 <h2>Tutor Info</h2>
+      <div class="form-row">       
+      <div class="form-group col-md-12">
+      <label for="school2">You are a tutor at</label>
+      <input type="text" class="form-control is-invalid" name="school2" id="school2" placeholder="" required="" autofocus="" onkeyup="validateSchool2()" value="{{ request.user.myuser.tutor.university }}" readonly="" />
+  	  </div>
+  	</div>
+  	<div class="form-row">
+      <div class="form-group col-md-12">
+          <label for="description">Description:</label>
+          <textarea class="form-control" rows="5" id="description" name="description" readonly="">{{ request.user.myuser.tutor.description }}</textarea>
+      </div>
+  </div>
+      <div class="form-row">
+      	      <div class="form-group col-md-12">
+      			<label for="hourly">Tutor type:</label>
+        		<input type="text" name="type" class="form-control" id="type" value="{{ type }}" readonly="">
+      			</div>
+      </div>
+      {% if type == 'Private Tutor' %}
+      <div class="form-row">
+  	      <div class="form-group col-md-12">
+  			<label for="hourly">Hourly rate:</label>
+    		<input type="text" name="hourly_rate" class="form-control" id="hourly" value="{{ request.user.myuser.tutor.privatetutor.hourlyRate }}" readonly="">
+  		</div>
+      </div>
+      {% endif %}
+      <div class="form-row tutor-course">
+      	<div class="form-group col-md-12">
+      	<label for="hourly">Tag:</label></div>
+      	{% for course in request.user.myuser.tutor.course_set.all %}
+      	<div class="col-md-2">
+      		<h4><span class="label label-warning">{{ course.courseCode }}</span></h4>
+      	</div>
+      	{% endfor %}
+      <div class="form-row course-catalogue" id="course-catalogue" style="display: none;">
+      	<div class="form-group col-md-12">
+      		<label for="hourly">Edit Tag:</label>
+      	{% for course in course_catalogue %}
+      		<div class="checkbox">
+			  <label><input type="checkbox" name="courseCode" id="{{ course.courseCode }}" value="{{ course.courseCode }}" onchange="toggleCheckBox(this.id)">{{course.courseCode}}: {{course.courseName}}</label>
+			  <input type="hidden" name="hiddenCourseCode" id="{{ course.courseCode }}Hidden" value="{{ course.courseCode }}" disabled="">
+			</div>
+      	{% endfor %}
+      </div>
+
+        </div>
+      <a href = "#" class="btn btn-md btn-info pull-right" id="edit" style="display: block;" role="button" value="back" onclick="editTutor()">Edit Tutor Profile</a>
+      <a href = "{% url 'main:profile' %}" class="btn btn-md btn-default pull-right" id="cancel" style="display: none;" role="button" value="back" onclick="cancelEditTutor()">Cancel</a>
+      <button class="btn btn-md btn-info pull-right" id="submit" style="display: none;" type="submit" value="register_student">Submit</button>
+  </form>
+  </div>
+  {% endif %}
+  </div>
+
+{% endblock %}

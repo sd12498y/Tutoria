@@ -10,7 +10,7 @@ from django.views import generic
 from django.contrib import auth
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
-from .models import myUser, Tutor, PrivateTutor, ContractTutor, Booking, Transaction, Wallet, Session, Course, Coupon, Student, Blackout, Payment
+from .models import myUser, Tutor, PrivateTutor, ContractTutor, Booking, Transaction, Wallet, Session, Course, Coupon, Student, Blackout, Payment,CourseCatalogue
 from django.db.models import Q
 from notifications.signals import notify
 from django.shortcuts import get_object_or_404
@@ -38,11 +38,28 @@ def checkUsername(request):
         username = request.GET.get('username',"")
         exists = User.objects.filter(username=username).exists()
         return JsonResponse({'exists': exists})
+
 def checkEmail(request):
     if request.method == 'GET':
+        if request.GET.get('username') and request.GET.get('email'):
+            if User.objects.filter(username=request.GET.get('username')).exists():                
+                user = User.objects.get(username=request.GET.get('username'))
+                if user.email == request.GET.get('email'):
+                    return JsonResponse({'valid': True})
+            else:
+                return JsonResponse({'valid': False})
         email = request.GET.get('email',"")
         exists = User.objects.filter(email=email).exists()
         return JsonResponse({'exists': exists})
+
+def getCourseSet(request):
+    if request.method == 'GET':
+        course_set = request.user.myuser.tutor.course_set.all()
+        course_list = []
+        for course in course_set:
+            course_list.append(course.courseCode.courseCode)
+        return JsonResponse({'course_list': course_list})
+
 def getCommissionRate():
     return 0.05
 
@@ -51,6 +68,51 @@ def login(request):
 		return HttpResponseRedirect(reverse('main:index'))
 	else:
 		return HttpResponseRedirect('/login/')
+
+def profile(request):
+    course_catalogue = CourseCatalogue.objects.all().distinct()
+    return render(request,'userProfile.html', {'course_catalogue': course_catalogue,})
+
+def review(request):
+    return render(request,'review.html')
+def forget(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        user = User.objects.get(username=username)
+        send_mail(
+            'Retrieve Password',
+            'Hello '+ username + ". Here is your password: "+user.password,
+            'myTutor@solveware.com',
+            [email],
+            fail_silently=False,
+        )
+    return render(request,'forgetPassword.html')
+
+def updateprofile(request):
+    if request.method=="POST":
+        tutor = request.user.myuser.tutor
+        tutor.description = request.POST.get("description","")
+        print request.POST.get("type","")
+        if request.POST.get("type","")=="Private Tutor":
+            print request.POST.get("hourly_rate","")
+            tutor.privatetutor.hourlyRate = request.POST.get("hourly_rate","")
+            tutor.privatetutor.save()
+        tutor.save()
+        course = request.POST.getlist("courseCode","")
+        hiddencourse = request.POST.getlist("hiddenCourseCode","")
+        for courseCode in course:
+            courseObj = CourseCatalogue.objects.get(courseCode=courseCode)
+            if not request.user.myuser.tutor.course_set.all().filter(courseCode=courseObj).exists():
+                tag = Course(tutorID=request.user.myuser.tutor, courseCode=courseObj)
+                tag.save()
+        for hiddencourseCode in hiddencourse:
+            courseObject = CourseCatalogue.objects.filter(courseCode=hiddencourseCode)
+            teachIn = Course.objects.filter(courseCode=courseObject)
+            for x in teachIn:
+                teachIn.delete()
+    return redirect('main:profile')
+
 def register(request):
     template = loader.get_template('register.html')
     context={}
@@ -71,7 +133,11 @@ def reg_student(request):
             usr = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password1'])
             usr.first_name = form.cleaned_data['firstName']
             usr.last_name = form.cleaned_data['lastName']
-            myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
+            if form.cleaned_data['image'] == None:
+                print "here"
+                myUsr = myUser(user=usr, tel=form.cleaned_data['tel'])
+            else:
+                myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
             school = request.POST['school']
             usr.save()
             wallet = Wallet(user=usr,balance=0)
@@ -89,7 +155,11 @@ def reg_tutor(request):
             usr = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password1'])
             usr.first_name = form.cleaned_data['firstName']
             usr.last_name = form.cleaned_data['lastName']
-            myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
+            if form.cleaned_data['image'] == None:
+                print "here"
+                myUsr = myUser(user=usr, tel=form.cleaned_data['tel'])
+            else:
+                myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
             school = request.POST['school']
             wallet = Wallet(user=usr,balance=0)
             usr.save()
@@ -110,7 +180,11 @@ def reg_both(request):
             usr = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password1'])
             usr.first_name = form.cleaned_data['firstName']
             usr.last_name = form.cleaned_data['lastName']
-            myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
+            if form.cleaned_data['image'] == None:
+                print "here"
+                myUsr = myUser(user=usr, tel=form.cleaned_data['tel'])
+            else:
+                myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
             school1 = form.cleaned_data['school1']
             school2 = form.cleaned_data['school2']
             wallet = Wallet(user=usr,balance=0)
