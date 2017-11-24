@@ -31,7 +31,7 @@ urlpatterns = [
 	url(r'^api/getCourseSet/$', views.getCourseSet, name='getCourseSet'),
 	url(r'^profile/$', views.profile, name='profile'),
 	url(r'^updateprofile/$', views.updateprofile, name='updateprofile'),
-	url(r'^review/$', views.review, name='review'),
+	url(r'^booking/(?P<bookingID>[0-9]+)/review/$', views.review, name='review'),
 	url(r'^forget/$', views.forget, name='forget'),
 	url(r'^api/checkCouponCode/$', views.checkCouponCode, name='checkCouponCode'),
 	url(r'^password_reset/$', views.passwordResetView.as_view(), name='passwordResetView'),
@@ -43,4 +43,5 @@ urlpatterns = [
     url(r'^password_change/done/$', views.passwordChangeDoneView.as_view(), name='password_change_done'),
     url(r'^manage_sessions/$', views.manage_sessions, name='manage_sessions'),
     url(r'^end_all_sessions/$', views.end_all_sessions, name='end_all_sessions'),
+    url(r'^bio_review/(?P<TutorID>[0-9]+)$', views.bio_review, name='bio_review'),
 ]

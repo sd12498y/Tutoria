@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+	<div class="row">
+	<!-- Contenedor Principal -->
+    <div class="comments-container">
+		<h1>Review</h1>
+
+		<ul id="comments-list" class="comments-list">
+			 {% if review_list %}
+			    
+			  {% for review in review_list %}
+			<li>
+				<div class="comment-main-level">
+					<!-- Avatar -->
+					<div class="comment-avatar"><img src="{{review.bookingID.studentID.user.myuser.profilePicture.url}}" alt=""></div>
+					<!-- Contenedor del Comentario -->
+					<div class="comment-box">
+						<div class="comment-head">
+							<h6 class="comment-name">{{review.bookingID.studentID.user.username}}</h6>
+							<span>commented on {{review.timestamp}}</span>
+							<i class="fa fa-reply"></i>
+							<i class="fa fa-heart"></i>
+						</div>
+						<div class="comment-content">
+							<input id="star_rating" name="star_rating" class="rb-rating" data-stars="5" data-step="0.5" data-size="xs" required="" disabled="" value="{{review.rate}}"/>
+							<h4> {{review.description}} </h4>
+						</div>
+					</div>
+				</div>
+			</li>
+			{% endfor %}
+			{% endif %}
+		</ul>
+	</div>
+	</div>
+</div>
+<script type="text/javascript">
+        jQuery(document).ready(function () {
+            $('.rb-rating').rating({
+                'showCaption': false,
+                'showClear': false,
+            });
+        });
+</script>
+{% endblock %}

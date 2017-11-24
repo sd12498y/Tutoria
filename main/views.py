@@ -10,7 +10,7 @@ from django.views import generic
 from django.contrib import auth
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
-from .models import myUser, Tutor, PrivateTutor, ContractTutor, Booking, Transaction, Wallet, Session, Course, Coupon, Student, Blackout, Payment,CourseCatalogue
+from .models import myUser, Tutor, PrivateTutor, ContractTutor, Booking, Transaction, Wallet, Session, Course, Coupon, Student, Blackout, Payment,CourseCatalogue, Review
 from django.db.models import Q
 from notifications.signals import notify
 from django.shortcuts import get_object_or_404
@@ -106,6 +106,12 @@ def login(request):
 def manage_sessions(request):
     return render(request,'manageSessions.html')
 
+def bio_review(request, TutorID):
+    #print request.user.myuser.id
+    myuser = myUser.objects.get(id=TutorID)
+    review_list = myuser.tutor.review_set.all().order_by('-timestamp')
+    return render(request,'comment.html', {'review_list': review_list})
+
 def end_all_sessions(request):
     booking_list = Booking.objects.filter(Q(sessionDate__lte=timezone.localtime(timezone.now()).date()), Q(endTime__lte = timezone.localtime(timezone.now()).time()), ~Q(status="ended"))
     for booking in booking_list:
@@ -116,13 +122,22 @@ def profile(request):
     course_catalogue = CourseCatalogue.objects.all().distinct()
     return render(request,'userProfile.html', {'course_catalogue': course_catalogue,})
 
-def review(request):
-    if request.method == 'POST':
-        rating = request.POST.get("star_rating")
-        if request.POST.get("comment"):
-            print request.POST.get("comment")
-
-    return render(request,'review.html')
+def review(request, bookingID):
+    if hasattr(request.user,"myuser"):
+        booking = Booking.objects.get(id=bookingID)
+        if request.user.myuser == booking.studentID:
+            if request.method == 'POST':
+                rating = request.POST.get("star_rating")
+                if request.POST.get("title"):
+                    title = request.POST.get("title")
+                if request.POST.get("comment"):
+                    comment = request.POST.get("comment")
+                booking.isReiew = True
+                booking.save()
+                review = Review(tutorID=booking.tutorID.tutor,studentID=booking.studentID.student, bookingID=booking, rate=rating, title=title, description=comment)
+                review.save()
+            return render(request,'review.html')
+    return redirect('main:index')
 def forget(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -275,8 +290,10 @@ class WalletView(generic.ListView):
 
 
 def addValue(request):
-	request.user.wallet.add(100)
-	return HttpResponseRedirect(reverse('main:wallet'))
+    request.user.wallet.add(100)
+    t = Transaction(senderID=self.user, receiverID=self.user, transactionAmount=value, action="Add Value", status=Transaction.TD)
+    t.save()
+    return HttpResponseRedirect(reverse('main:wallet'))
 
 class BookingHistoryView(generic.ListView):
     template_name = 'booking_history.html'
