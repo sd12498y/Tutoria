@@ -65,6 +65,7 @@ class Tutor(models.Model):
 	user = models.OneToOneField(myUser, on_delete=models.CASCADE)
 	university = models.CharField(max_length=50)
 	description = models.TextField()
+	isactivated = models.BooleanField(default=True)
 	
 	objectManager = TutorManager()
 	objects = InheritanceManager()
