@@ -16,7 +16,7 @@
             <p>Total Payment:</p>
             <p>{{booking.tutoringFee}}+{{booking.commission}}={{booking.totalPayable}}</p>
     </div>
-    	{% if booking.status|lower != "cancelled"  and booking.student == request.user.myuser %}
+    	{% if booking.status|lower != "cancelled"  and booking.studentID == request.user.myuser %}
           <div class="col-xs-12 col-md-4">
   				<h5><a href="{% url 'main:cancel' booking.id %}" class="btn btn-danger" role="button">Cancel</a></h5>
           </div>

@@ -26,13 +26,13 @@
 			   <div class="container">
 			     <div class="row row-content">
         			<div class="col-xs-12 col-md-8">
-        				<p>BookingID: {{booking.id}}</p>
-        				<p>Status: {{booking.status}}</p>
-        				<p>Date: {{booking.session_date}}</p>
-			       	 	<p>Start: {{ booking.start_time }}</p>
-			       	 	<p>End: {{booking.end_time}}</p>
+        				<p>BookingID: {{ booking.id }}</p>
+        				<p>Status: {{ booking.status }}</p>
+        				<p>Date: {{ booking.sessionDate }}</p>
+			       	 	<p>Start: {{ booking.startTime }}</p>
+			       	 	<p>End: {{ booking.endTime }}</p>
 			       	 	<p>Student: {{booking.studentID.user.username}}</p>
-			       	 	<p>Tutor: {{booking.tutorID.user.username}}</p>
+			       	 	<p>Tutor: {{ booking.tutorID.user.username }}</p>
 			        </div>
 			        <div class="col-xs-12 col-md-4">
             			<p><a href="{% url 'main:bookingDetail' booking.id %}" class="btn btn-info" role="button"> View Details</a></p>

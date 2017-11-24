@@ -28,7 +28,8 @@
         			<div class="col-xs-12 col-md-8">
         				<p>Payer: {{record.senderID.username}}</p>
         				<p>Receiver: {{record.receiverID.username}}</p>
-			       	 	<p>Amount: {{ record.transactionAmount }}</p>
+			       	 	<p>Amount: ${{ record.transactionAmount }}</p>			       	 	
+			       	 	<p>Booking ID: {{ record.bookingID.id }}</p>
 			       	 	<p>{{record.action}}</p>
 			       	 	<p>At: {{record.timestamp}}</p>
 			        </div>

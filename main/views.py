@@ -33,6 +33,16 @@ import pytz
 from django.core import serializers
 
 # Create your views here.
+def getCommissionRate():
+    return 0.05
+def checkCouponCode(request):
+    if request.method == 'GET':
+        inputcode = request.GET.get('InCoupon',"")
+
+        exists = Coupon.objects.isCouponValid(inputcode).exists()
+        #ValidCouponList=list(cp.couponCode for cp in ValidCouponObjList)
+        return JsonResponse({'exists': exists})
+
 def checkUsername(request):
     if request.method == 'GET':
         username = request.GET.get('username',"")
@@ -211,12 +221,17 @@ def logout(request):
 def index(request):
     return render_to_response('index.html',locals())
 
+def bookFail(request):
+    return render(request,'bookFail.html')
+
 class WalletView(generic.ListView):
     template_name = 'wallet.html'
     context_object_name = 'transaction_history'
     def get_queryset(self):
         """Return the last five published questions."""
         return self.request.user.wallet.getHistory()
+
+
 def addValue(request):
 	request.user.wallet.addValue(100)
 	return HttpResponseRedirect(reverse('main:wallet'))
@@ -241,6 +256,128 @@ class BioView(generic.DetailView):
 	model = Tutor
 	template_name = 'bio.html'
 '''
+
+
+#Olivia: added extimetable  4/11/17 22:41
+def extimetable_fail(request, TutorID):
+    if request.method == "GET":
+
+        tz = pytz.timezone('Asia/Hong_Kong')
+        
+        #get subclass of tutor
+        TargetTutor = subclassTutor(TutorID)
+
+        #get the course taught by tutor
+        TutorCourse = Course.objects.filter(tutorID = TutorID)
+
+        #calculation of date range to display
+        Dates = []        
+        TodayDate = timezone.localtime(timezone.now()).date()        
+        StartDate = TodayDate - timedelta(days=TodayDate.weekday()) - timedelta(days=1)
+        EndDate = StartDate + timedelta(days=13)
+        for n in range(int((EndDate - StartDate).days)+1):
+            TempDay = StartDate + timedelta(n)
+            Dates.append(TempDay)
+        
+        now = timezone.localtime(timezone.now())
+        
+        
+        ListOfSessions = []
+        Hours = []
+        booked_found = 0
+        appendonce = 0
+
+        thisWeekDates = Dates[:7]
+        nextWeekDates = Dates[-7:]
+
+        #get the booking of the student and tutor
+        SameDayBooking = Booking.objects.filter(Q(status="not yet begun") | Q(status="locked"), tutorID = TargetTutor.user, sessionDate__gte = TodayDate, sessionDate__lte = EndDate, studentID = request.user.myuser)
+
+        SameDay=list(o.sessionDate for o in SameDayBooking)
+        
+        #get the session interval of the tutor type
+        sessionInterval = TargetTutor.getSessionInterval()
+
+
+        BoolSessionList = []
+
+        #24*60 is number of minutes in a day
+        for smoketest in rrule.rrule(rrule.MINUTELY, interval=sessionInterval, dtstart=TodayDate, count=(24*60)/sessionInterval):
+            
+
+            for eachdate in Dates:
+            
+                #get the bookings of the tutor on a particular day
+                DateBookSessionOfTutor = Booking.objects.filter(tutorID = TargetTutor.user, sessionDate = eachdate)
+
+                #get the blackouts of the tutor on a particular day
+                BlackOutTutor = Blackout.objects.filter(tutorID = TutorID, date = eachdate)
+                BlackOut_eachdate_time=list(bo.startTime for bo in BlackOutTutor)
+            
+                eachhour = smoketest.strftime('%H:%M:%S')
+                if not any(eachhour in s for s in Hours):
+                    Hours.append(eachhour)
+                
+                
+                booked_found = 0
+                
+                
+                tempbuttonid = eachdate.strftime('%Y%m%d') + smoketest.strftime('%H%M%S') + str(sessionInterval)
+
+                dtsmoketest = tz.localize(smoketest, is_dst=True)
+                #print dtsmoketest
+                
+                #define those dates that are out of booking range
+                
+                if (eachdate<=TodayDate):
+                    TempTuple = ("OOB", tempbuttonid)
+                    BoolSessionList.append(TempTuple)
+                    
+                elif (eachdate>TodayDate + timedelta(days=7)):
+                    TempTuple = ("OOB", tempbuttonid)
+                    BoolSessionList.append(TempTuple)
+                elif (dtsmoketest <= now and eachdate<=(TodayDate + timedelta(days=1))):
+                    TempTuple = ("OOB", tempbuttonid)
+                    BoolSessionList.append(TempTuple)
+                else:
+
+                    #check for booking history of that tutor
+                    for x in DateBookSessionOfTutor:
+                        
+                        #string of Booked starttime of that tutor on that date
+                        strx = x.startTime.strftime('%H:%M:%S')
+                       
+                        if strx == eachhour:
+                            
+                            booked_found = 1
+                            TempTuple = ("Booked", tempbuttonid)
+                            BoolSessionList.append(TempTuple)
+                    #if the session is not booked
+                    if booked_found == 0:
+
+                        #if student has booked the tutor on that day
+                        if eachdate in SameDay:                        
+                            TempTuple = ("SameDay", tempbuttonid)
+                            BoolSessionList.append(TempTuple)
+                        #if the session is blacked out by the tutor
+                        elif dtsmoketest.time() in BlackOut_eachdate_time:
+                            TempTuple = ("BlackOut", tempbuttonid)
+                            BoolSessionList.append(TempTuple)
+                        #session is free
+                        else:
+                            TempTuple = ("Free", tempbuttonid)
+                            BoolSessionList.append(TempTuple)
+                    
+                #ListOfSessions.append(tempsession)
+        
+        template = loader.get_template('extimetable.html')
+        context = {'TargetTutor': TargetTutor, 'TodayDate': TodayDate, 'StartDate': StartDate, "EndDate": EndDate, "Dates": Dates, "thisWeekDates": thisWeekDates, "nextWeekDates":nextWeekDates, "Times": Hours, "BoolSessionList": BoolSessionList, 'TutorCourse' : TutorCourse}
+        return HttpResponse(template.render(context, request))
+    if request.method == "POST":
+        Pressedbutton = request.POST.get('eachbutton', '')
+        request.session['extimetableToConfirmBooking_token'] = Pressedbutton
+        return HttpResponseRedirect('/search/%s/confirmbooking/' % TutorID)
+
 
 #Olivia: added extimetable	4/11/17 22:41
 def extimetable(request, TutorID):
@@ -285,7 +422,7 @@ def extimetable(request, TutorID):
         for eachdate in Dates:
             
             #get the bookings of the tutor on a particular day
-            DateBookSessionOfTutor = Booking.objects.filter(tutorID = TargetTutor.user, sessionDate = eachdate)
+            DateBookSessionOfTutor = Booking.objects.filter(Q(status="not yet begun") | Q(status="locked"), tutorID = TargetTutor.user, sessionDate = eachdate)
 
             #get the blackouts of the tutor on a particular day
             BlackOutTutor = Blackout.objects.filter(tutorID = TutorID, date = eachdate)
@@ -304,7 +441,7 @@ def extimetable(request, TutorID):
                 tempbuttonid = eachdate.strftime('%Y%m%d') + smoketest.strftime('%H%M%S') + str(sessionInterval)
 
                 dtsmoketest = tz.localize(smoketest, is_dst=True)
-                print dtsmoketest
+                #print dtsmoketest
                 
                 #define those dates that are out of booking range
                 if (eachdate<=TodayDate):
@@ -352,65 +489,218 @@ def extimetable(request, TutorID):
         request.session['extimetableToConfirmBooking_token'] = Pressedbutton
         return HttpResponseRedirect('/search/%s/confirmbooking/' % TutorID)
 	
-def bio(request, TutorID):
-    if request.method=="GET":
 
-        TargetTutor = subclassTutor(TutorID)
-        BookSessionOfTutor = Booking.objects.filter(tutorID = TargetTutor.user)
-        TutorCourse = Course.objects.filter(tutorID = TutorID)
-        Dates = []
-        TodayDate = timezone.now().date()
-        StartDate = TodayDate - timedelta(days=TodayDate.weekday())
-        EndDate = StartDate + timedelta(days=6)
-        Dates.append(EndDate)
+def intimetable(request):
+    if request.method == "GET":
+        #user gets booking
+
+        tz = pytz.timezone('Asia/Hong_Kong')
         
-        for n in range(int((EndDate - StartDate).days)):
+        #get subclass of tutor
+        TargetUser = request.user.myuser
+
+        #calculation of date range to display
+        Dates = []        
+        TodayDate = timezone.localtime(timezone.now()).date()        
+        StartDate = TodayDate - timedelta(days=TodayDate.weekday()) - timedelta(days=1)
+        EndDate = StartDate + timedelta(days=13)
+        for n in range(int((EndDate - StartDate).days)+1):
             TempDay = StartDate + timedelta(n)
             Dates.append(TempDay)
         
-        now = timezone.now()
-        sevenDaysLater = now + timedelta(days=7)
+        now = timezone.localtime(timezone.now())
+        
         
         ListOfSessions = []
         Hours = []
-        found = 0
+        booked_found = 0
         appendonce = 0
+
+        thisWeekDates = Dates[:7]
+        nextWeekDates = Dates[-7:]
+
+        #get the booking of the student and tutor
         
-        #for each date
+        #get the session interval of the tutor type
+
+        sessionInterval = 30
+
         for eachdate in Dates:
-            #print eachdate
-            DateBookSessionOfTutor = Booking.objects.filter(tutorID = TargetTutor.user, sessionDate = eachdate)
             
-            #for each hour
-            for smoketest in rrule.rrule(rrule.HOURLY, dtstart=TodayDate, count=24):
+            #get the bookings of the tutor on a particular day
+            DateBookSessionOfTutor = Booking.objects.filter(tutorID = TargetTutor.user, sessionDate = eachdate)
+            relatedBooking = request.user.myuser.getRelatedBooking(StartDate, EndDate)
+            #get the blackouts of the tutor on a particular day
+            BlackOutTutor = Blackout.objects.filter(tutorID = TutorID, date = eachdate)
+            BlackOut_eachdate_time=list(bo.startTime for bo in BlackOutTutor)
+            
+            #24*60 is number of minutes in a day
+            for smoketest in rrule.rrule(rrule.MINUTELY, interval=sessionInterval, dtstart=TodayDate, count=(24*60)/sessionInterval):
                 eachhour = smoketest.strftime('%H:%M:%S')
                 if not any(eachhour in s for s in Hours):
                     Hours.append(eachhour)
                 
-                #print smoketest
-                found = 0
-                tempbuttonid = eachdate.strftime('%Y%m%d') + smoketest.strftime('%H%M%S')
-                for x in DateBookSessionOfTutor:
+                
+                booked_found = 0
+                
+                
+                tempbuttonid = eachdate.strftime('%Y%m%d') + smoketest.strftime('%H%M%S') + str(sessionInterval)
+
+                dtsmoketest = tz.localize(smoketest, is_dst=True)
+                #print dtsmoketest
+                
+                #define those dates that are out of booking range
+                if (eachdate<=TodayDate):
                     
-                    #string of Booked starttime of that tutor on that date
-                    strx = x.startTime.strftime('%H:%M:%S')
-                   
-                    if strx == eachhour:
-                        #print "yes"
-                        found = 1
-                        tempsession = Session(eachdate, eachhour, (smoketest+timedelta(hours=1)), "Booked", eachhour, tempbuttonid)
-                    
-                if found == 0:
-                    tempsession = Session(eachdate, eachhour, (smoketest+timedelta(hours=1)), "Free", eachhour, tempbuttonid)
+                    tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
+                
+                elif (eachdate>TodayDate + timedelta(days=7)):
+                    tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
+                
+                elif (dtsmoketest <= now and eachdate<=(TodayDate + timedelta(days=1))):
+                    tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
+
+                else:
+
+                    #check for booking history of that tutor
+                    for x in DateBookSessionOfTutor:
+                        
+                        #string of Booked starttime of that tutor on that date
+                        strx = x.startTime.strftime('%H:%M:%S')
+                       
+                        if strx == eachhour:
+                            
+                            booked_found = 1
+                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "Booked", eachhour, tempbuttonid)
+                    #if the session is not booked
+                    if booked_found == 0:
+
+                        #if student has booked the tutor on that day
+                        if eachdate in SameDay:                        
+                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "SameDay", eachhour, tempbuttonid)
+                        #if the session is blacked out by the tutor
+                        elif dtsmoketest.time() in BlackOut_eachdate_time:
+                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "BlackOut", eachhour, tempbuttonid)
+                        #session is free
+                        else:
+                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "Free", eachhour, tempbuttonid)
                     
                 ListOfSessions.append(tempsession)
+        
+        template = loader.get_template('extimetable.html')
+        context = {'TargetTutor': TargetTutor, 'TodayDate': TodayDate, 'StartDate': StartDate, "EndDate": EndDate, "Dates": Dates, "thisWeekDates": thisWeekDates, "nextWeekDates":nextWeekDates, "Times": Hours, "ListOfSessions": ListOfSessions, 'TutorCourse' : TutorCourse}
+        return HttpResponse(template.render(context, request))
+    if request.method == "POST":
+        Pressedbutton = request.POST.get('eachbutton', '')
+        request.session['extimetableToConfirmBooking_token'] = Pressedbutton
+        return HttpResponseRedirect('/search/%s/confirmbooking/' % TutorID)
+
+
+def bio(request, TutorID):
+    if request.method == "GET":
+
+        tz = pytz.timezone('Asia/Hong_Kong')
+        
+        #get subclass of tutor
+        TargetTutor = subclassTutor(TutorID)
+
+        #get the course taught by tutor
+        TutorCourse = Course.objects.filter(tutorID = TutorID)
+
+        #calculation of date range to display
+        Dates = []        
+        TodayDate = timezone.localtime(timezone.now()).date()        
+        StartDate = TodayDate - timedelta(days=TodayDate.weekday()) - timedelta(days=1)
+        EndDate = StartDate + timedelta(days=13)
+        for n in range(int((EndDate - StartDate).days)+1):
+            TempDay = StartDate + timedelta(n)
+            Dates.append(TempDay)
+        
+        now = timezone.localtime(timezone.now())
+        
+        
+        ListOfSessions = []
+        Hours = []
+        booked_found = 0
+        appendonce = 0
+
+        thisWeekDates = Dates[:7]
+        nextWeekDates = Dates[-7:]
+
+        #get the booking of the student and tutor
+        SameDayBooking = Booking.objects.filter(Q(status="not yet begun") | Q(status="locked"), tutorID = TargetTutor.user, sessionDate__gte = TodayDate, sessionDate__lte = EndDate, studentID = request.user.myuser)
+
+        SameDay=list(o.sessionDate for o in SameDayBooking)
+        
+        #get the session interval of the tutor type
+        sessionInterval = TargetTutor.getSessionInterval()
+
+        for eachdate in Dates:
+            
+            #get the bookings of the tutor on a particular day
+            DateBookSessionOfTutor = Booking.objects.filter(Q(status="not yet begun") | Q(status="locked"), tutorID = TargetTutor.user, sessionDate = eachdate)
+
+            #get the blackouts of the tutor on a particular day
+            BlackOutTutor = Blackout.objects.filter(tutorID = TutorID, date = eachdate)
+            BlackOut_eachdate_time=list(bo.startTime for bo in BlackOutTutor)
+            
+            #24*60 is number of minutes in a day
+            for smoketest in rrule.rrule(rrule.MINUTELY, interval=sessionInterval, dtstart=TodayDate, count=(24*60)/sessionInterval):
+                eachhour = smoketest.strftime('%H:%M:%S')
+                if not any(eachhour in s for s in Hours):
+                    Hours.append(eachhour)
+                
+                
+                booked_found = 0
+                
+                
+                tempbuttonid = eachdate.strftime('%Y%m%d') + smoketest.strftime('%H%M%S') + str(sessionInterval)
+
+                dtsmoketest = tz.localize(smoketest, is_dst=True)
+                #print dtsmoketest
+                
+                #define those dates that are out of booking range
+                if (eachdate<=TodayDate):
+                    
+                    tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
+                
+                elif (eachdate>TodayDate + timedelta(days=7)):
+                    tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
+                
+                elif (dtsmoketest <= now and eachdate<=(TodayDate + timedelta(days=1))):
+                    tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
+
+                else:
+
+                    #check for booking history of that tutor
+                    for x in DateBookSessionOfTutor:
+                        
+                        #string of Booked starttime of that tutor on that date
+                        strx = x.startTime.strftime('%H:%M:%S')
+                       
+                        if strx == eachhour:
+                            
+                            booked_found = 1
+                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "Booked", eachhour, tempbuttonid)
+                    #if the session is not booked
+                    if booked_found == 0:
+
+                        #if student has booked the tutor on that day
+                        if eachdate in SameDay:                        
+                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "SameDay", eachhour, tempbuttonid)
+                        #if the session is blacked out by the tutor
+                        elif dtsmoketest.time() in BlackOut_eachdate_time:
+                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "BlackOut", eachhour, tempbuttonid)
+                        #session is free
+                        else:
+                            tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "Free", eachhour, tempbuttonid)
+                    
+                ListOfSessions.append(tempsession)
+        
+        template = loader.get_template('bio2.html')
+        context = {'TargetTutor': TargetTutor, 'TodayDate': TodayDate, 'StartDate': StartDate, "EndDate": EndDate, "Dates": Dates, "thisWeekDates": thisWeekDates, "nextWeekDates":nextWeekDates, "Times": Hours, "ListOfSessions": ListOfSessions, 'TutorCourse' : TutorCourse}
+        return HttpResponse(template.render(context, request))
     
-    template = loader.get_template('bio2.html')
-    #Sform = SessionForm()
-    context = {'TargetTutor': TargetTutor, 'TodayDate': TodayDate, 'StartDate': StartDate, "EndDate": EndDate, "Dates": Dates, "Times": Hours, "ListOfSessions": ListOfSessions, 'TutorCourse': TutorCourse, }
-    return HttpResponse(template.render(context, request))
-    #reques
-    #return PrivateTutorView.as_view()
 
 
 def subclassTutor(TutorID):
@@ -466,25 +756,9 @@ def confirmBooking(request, TutorID):
             b.commission = commission
             b.totalPayable = totalPayable
 
-            ValidCouponObjList = Coupon.objects.getValidCoupon();
-            #ValidCouponObjList = Coupon.objects.getValidCoupon().values_list('id','couponCode')
-            ValidCouponList=list(cp.couponCode for cp in ValidCouponObjList)
-            print ValidCouponList
-            #json_ValidCouponList = json.dumps(list(ValidCouponObjList))
-            #json_ValidCouponList = serializers.serialize('json', (ValidCouponObjList))
-            #print json_ValidCouponList
-            #json_ValidCouponList = json.dumps(ValidCouponList)
-            json_ValidCouponList = ""
-            '''
-            for cp in ValidCouponObjList:
-                print "yay"
-                ValidCouponList.append = ["couponCode"]
-                temp = cp.couponCode
-                ValidCouponList.append(temp)
-            json_ValidCouponList = json.dumps(ValidCouponList)
-            '''
-            print json_ValidCouponList
-            context = {'b': b, 't':t, 'tutorUsername':tutorUsername, 'TutorCourse': TutorCourse, 'ValidCouponList':ValidCouponList, 'json_ValidCouponList': json_ValidCouponList,}
+            
+            
+            context = {'b': b, 't':t, 'tutorUsername':tutorUsername, 'TutorCourse': TutorCourse, }
             template = loader.get_template('confirm_booking_withPayment.html')
             return HttpResponse(template.render(context, request))
 
@@ -516,16 +790,27 @@ def confirmBooking(request, TutorID):
             b.totalPayable = totalPayable
             
             #make payment
-            #payment = b.createPayment()
+            bookingResults = b.createPayment()
+            if (bookingResults == False):
+                #failed
+                print ("bookingflag == False")
+                return redirect('main:bookFail')
+                
+
+
 
         
 
         b.status = "not yet begun"
         b.timestamp = timezone.localtime(timezone.now())
+
         #put payment in
         b.save()
+
         print b.id
-        bookingID = b.id        
+        bookingResults.bookingID = b
+        bookingID = b.id
+        bookingResults.createTransaction()
         return HttpResponseRedirect('/booking/%s/' % bookingID)
 
 
@@ -577,42 +862,6 @@ def confirmBooking(request, TutorID):
 
 
 
-def confirmBookingold(request, TutorID):
-    t = Tutor.objects.get(pk=TutorID)
-    if request.method=="POST":
-        #buttonid = SessionForm(request.POST)
-        Pressedbutton = request.POST.get('eachbutton', '')
-        CourseSelected = request.POST.get('CourseDrop', '')
-        buttonid = Pressedbutton
-
-        date = datetime.strptime(buttonid[:8], '%Y%m%d').date()
-        ChosenTime = datetime.strptime(buttonid[-6:], '%H%M%S').time()
-        start=ChosenTime
-        #assume 1hour first
-        newhourdatetime = datetime.strptime(buttonid, '%Y%m%d%H%M%S')+timedelta(hours=1)
-        end = newhourdatetime.time()
-        #assume bookings are all not yet begun
-        print CourseSelected
-
-        CourseObj = Course.objects.get(tutorID = t, course__CourseCode = CourseSelected)
-        SubjectName = CourseCatalogue.objects.get(CourseCode = CourseSelected).getCourseName()
-
-
-        #assume course is charged
-        TFee = CourseObj.hourly_rate
-        #GetAllValidCoupon
-        
-
-        print ValidCouponList
-
-
-
-
-        b = Booking(session_date=date, student=request.user.myuser,tutor=t.user, start_time=start, end_time=end, course=CourseObj.course, tutoring_fee=TFee, commission=TFee*0.05, total_payable=TFee*1.05)
-        #do not save!
-        context = {'b': b, 't':t, 'SubjectName' : SubjectName, 'ValidCouponList' : ValidCouponList}
-        template = loader.get_template('confirm_booking.html')
-        return HttpResponse(template.render(context, request))
 
 class CancelView(generic.DetailView):
 	model = Booking
@@ -623,8 +872,8 @@ def ConfirmCancel(request, booking_id):
     booking = get_object_or_404(Booking, pk=booking_id)
     booking.status = "Cancelled"
     booking.save()
-    wallet = get_object_or_404(Wallet, user=booking.student)
-    wallet.refund(booking.total_payable, booking.tutor)
+    wallet = get_object_or_404(Wallet, user=booking.studentID.user)
+    wallet.refund(booking.totalPayable, booking.tutorID)
 
     # Always return an HttpResponseRedirect after successfully dealing
     # with POST data. This prevents data from being posted twice if a
@@ -643,7 +892,6 @@ def BookingDetails(request, pk):
             return HttpResponseRedirect('/tutor/BookingDetails_stu/%s/ConfirmCancellation/' % BookingID)
          
     print "BookingDetails"
-    print pk
     booking = Booking.objects.get(pk = pk)
     
     template = loader.get_template('booking_details.html')

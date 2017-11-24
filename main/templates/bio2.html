@@ -15,44 +15,10 @@
     {% include 'tutorUpperBio.html' %}
     {% block schedule %}
 <div class="container">
-      <table class ="table table-bordered">
-        <tr class="active">
-            <td>
-            {% for date in Dates %}
-                <td> {{ date }}
-            {% endfor %}
-        </tr>
-        <tr class="active">
-          <td align="center">
-          <td align="center">SUNDAY
-          <td align="center">MONDAY
-          <td align="center">TUESDAY
-          <td align="center">WEDNESDAY
-          <td align="center">THURSDAY
-          <td align="center">FRIDAY
-          <td align="center">SATURDAY
-        </tr>
+      {% include 'biotimetable.html' %}
+     {% block biotimetable %}
+     {% endblock %}
 
-          {% for time in Times %}
-            <tr>
-              <td class="active"> {{time}}</td>
-            {% for date in Dates %}
-                  <!--
-                  <form action="/tutor/ConfirmBooking/" method="post">{% csrf_token %}
-                    <input id='Sunday' type="submit" value="Select" onclick="generateRow()"/>
-                  </form>
-                  -->
-                  {% for eachsession in ListOfSessions%}
-
-                      {%if eachsession.SessionDate == date and eachsession.StartTime == time%}
-                      <td>{{eachsession.Status}}</td>
-                      {% endif %}
-                  {% endfor %}
-            {% endfor %}
-            </tr>
-          {% endfor %}
-
-      </table>
         {% endblock %}
       {% endblock %}
     </div>

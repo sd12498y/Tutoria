@@ -3,12 +3,8 @@
     
 var VList;
 //var VList = JSON.parse({{ json_ValidCouponList|safe }});
-function getJSON(json_ValidCouponList){
-    VList = JSON.parse(json_ValidCouponList);
-    alert(VList)
 
-}
-function is_CouponValid()
+function is_CouponValid(com)
 {
     
    
@@ -16,84 +12,44 @@ function is_CouponValid()
 
     
     var InputCouponCode = document.getElementById('InCoupon').value;
-    alert ("Input: "+InputCouponCode);
+    r = new XMLHttpRequest();
+    r.onreadystatechange = function(){
+    if (this.readyState == 4 && this.status == 200) {
+        var data = JSON.parse(r.responseText);
+        console.log(data);
+        if (data.exists == true) {
+          document.getElementById("couponFeedback").innerHTML = "Coupon is valid!";
+          document.getElementById('CouponUsed').value = "Yes";
+          document.getElementById('InCoupon').style.backgroundColor = "green";
+          document.getElementById("couponDiscount").innerHTML = "Discount: -$" + com;
+          document.getElementById("couponDiscount").style.color = "green";
+        return true;
+        }else{
+            console.log("coupon is not valid");
+            document.getElementById("couponFeedback").innerHTML = "Coupon is not valid!";
+
+            document.getElementById('CouponUsed').value = "No";
+
+            document.getElementById('InCoupon').style.backgroundColor = "red";
+
+          document.getElementById("couponDiscount").innerHTML = "";
+            return false;
+        }
+    
+    }}
+
+    r.open("GET", "/api/checkCouponCode/?InCoupon="+InputCouponCode, true);
+    r.send();
 
 
-    //if coupon is not valid    
-    document.getElementById('CouponUsed').value = "No";
+
+
+        //if coupon is not valid    
+    //document.getElementById('CouponUsed').value = "No";
 
     //if coupon is valid
     //document.getElementById('CouponUsed').value = "Yes";
 
-
-
-
-    //var ValidCoupon = {{ ValidCouponList }};
-
-    /*
-
-    if( ValidCoupon.indexOf("InputCoupon") > -1 ) {
-        alert("COUPON FOUND!");
-    }
-    else{
-        alert("COUPON NOT FOUND!");
-    }
-    */
-    
-    //var decoded = JSON.load(VList);
-
-    /*
-    alert(VList)
-
-    var hasMatch =false;
-    var index
-    for (index = 0; index in VList.couponCode) {
-      alert("*")
-      alert(eachcoupon)
-    }
-    */
-    /*
-    for (var index = 0; index < VList.length; ++index) {
-
-     var eachcoupon = VList[index];
-     
-     alert (eachcoupon.couponCode)
-
-     if(eachcoupon.couponCode == "InputCouponCode"){
-       alert("Coupon is valid");
-       hasMatch = true;
-       break;
-     }
-    }
-    if (hasMatch == false){
-        alert("Coupon Code is not valid");
-    }
-*/
-
-    return false;
-
-
-
-   
-    /*
-    var VList = {{ ValidCouponList|safe }};
-    alert ("VList length"+VList.length);
-    /*
-    if (InputCouponCode.length == 0){
-        //mark empty
-        alert("empty");
-    }
-        /*
-    else if (ValidCouponList.indexOf('InputCouponCode') >-1){
-        //code is not valid
-        alert("Coupon Code is not valid");
-    }
-    else{
-        alert("Coupon is valid");
-    }
-    return false;
-    
-        */
 
 }
 
@@ -107,16 +63,24 @@ function is_CouponValid()
 </script>
 
 <div class="row">
+
         <h2>Checkout</h2>
         <p>Tutoring Fee: ${{b.tutoringFee}}</p>
         <p>Commission: ${{b.commission}}</p>
+        <div class="" id="couponDiscount">
+        </div>
         <p>Total: ${{b.totalPayable}}</p>
+
+        
         <form id="couponForm" name="couponForm">
             Coupon Code: 
                 <input type="text" name="InCoupon" id="InCoupon" value=""/>
-                <input class="col-lg-1 active" type="button" name="couponSubmit" value = "Validate" onclick="is_CouponValid();"/>
+                <input class="btn active" type="button" name="couponSubmit" value = "Validate" onclick="is_CouponValid({{b.commission}})"/>
                 
+                <div class="" id="couponFeedback">
+                </div>
         </form>
+        
 
 </div>
 {% block payment %}
