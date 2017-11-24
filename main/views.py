@@ -33,7 +33,7 @@ from django.contrib.auth.tokens import default_token_generator
 #Olivia: 7/11/17 14:50
 from django.db.models import Q
 import pytz
-
+from django.contrib.admin.views.decorators import staff_member_required
 from django.core import serializers
 
 # Create your views here.
@@ -101,6 +101,16 @@ def login(request):
 		return HttpResponseRedirect(reverse('main:index'))
 	else:
 		return HttpResponseRedirect('/login/')
+
+@staff_member_required
+def manage_sessions(request):
+    return render(request,'manageSessions.html')
+
+def end_all_sessions(request):
+    booking_list = Booking.objects.filter(Q(sessionDate__lte=timezone.localtime(timezone.now()).date()), Q(endTime__lte = timezone.localtime(timezone.now()).time()), ~Q(status="ended"))
+    for booking in booking_list:
+        booking.end()
+    return redirect('main:manage_sessions')
 
 def profile(request):
     course_catalogue = CourseCatalogue.objects.all().distinct()
@@ -265,7 +275,7 @@ class WalletView(generic.ListView):
 
 
 def addValue(request):
-	request.user.wallet.addValue(100)
+	request.user.wallet.add(100)
 	return HttpResponseRedirect(reverse('main:wallet'))
 
 class BookingHistoryView(generic.ListView):

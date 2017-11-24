@@ -33,6 +33,13 @@ class myUser(models.Model):
 	def __str__(self):
 		return '%s' % (self.user.username)
 
+class myTutor(models.Model):
+	staff = models.OneToOneField(User, related_name='staff', on_delete=models.CASCADE)
+	admin = models.ForeignKey(User, related_name='admin', on_delete=models.CASCADE)
+
+	def __str__(self):
+		return '%s' % (self.staff.username)
+
 class StudentManager(models.Manager):
 	def create_student(self, user, university):
 		student = self.create(user=user, university=university)
@@ -243,6 +250,31 @@ class Wallet(models.Model):
 		)
 		return
 
+	def add(self,value):
+		self.balance += value
+		self.save()
+		notify.send(self.user, recipient=self.user, verb='New value has been added to your wallet')
+		send_mail(
+		    'Value added to your wallet',
+		    'Here is the message.',
+		    'system@solveware.com',
+		    [self.user.email],
+		    fail_silently=False,
+		)
+		return
+
+	def minus(self,value):
+		self.balance -= value
+		self.save()
+		notify.send(self.user, recipient=self.user, verb='Value has been deducted from your wallet')
+		send_mail(
+		    'Value has been deducted from your wallet',
+		    'Here is the message.',
+		    'system@solveware.com',
+		    [self.user.email],
+		    fail_silently=False,
+		)
+		return
 	def getBalance(self):
 		return self.balance
 
@@ -268,6 +300,7 @@ class Booking(models.Model):
 	commission = models.FloatField(default=0, null=True)
 	#status = "not yet begun","locked", "end", "cancelled"
 	status = models.CharField(max_length=20)
+	isReivew = models.BooleanField(default=False)
 
 	def __str__(self):
 		return '%s booked %s' %(self.studentID.user.username, self.tutorID.user.username)
@@ -280,11 +313,19 @@ class Booking(models.Model):
 			return False
 		else:
 			return payflag
+	def end(self):
+		self.status = "ended"
+		self.save()
+		p = Payment.objects.get(bookingID=self.id)
+		p.complete()
+
+
 
 
 class TransactionManager(models.Manager):
 	def create_transaction(self, senderID, receiverID, transactionAmount, bookingID, action):
 		t = self.create(senderID=senderID, receiverID=receiverID, transactionAmount=transactionAmount, bookingID=bookingID, action=action)
+		t.begin()
 		return t
 
 
@@ -294,6 +335,9 @@ class Transaction(models.Model):
 	RD = "Refund"
 	TP = "Tutorial Payment"	
 	TS = "Tutorial Salary"
+	HG = "Holding up by MyTutor"
+	TD = "Transferred"
+	CN = "Cancelled"
 	choices = (
 		(AV, 'Add Value'),
 		(RD, 'Refund'),
@@ -307,12 +351,32 @@ class Transaction(models.Model):
 		max_length=30,
 		choices = choices,
 		)
+	STATUSCHOICES = (
+		(HG, 'Holding up by MyTutor'),
+		(TD, 'Transferred'),
+		(CN, 'Cancelled')
+		)
+	status= models.CharField(
+		max_length=2,
+	    choices=STATUSCHOICES,
+	    default=HG,
+		)
 
 	objects = TransactionManager()
 
-
 	def __str__(self):
 		return '%s to %s : %s' %(self.payer.user.username, self.receiver.user.username, self.action)
+	def begin(self):
+		self.senderID.wallet.minus(self.transactionAmount)
+	def complete(self):
+		self.status = Transaction.TD
+		self.save()
+		company = User.objects.get(username="mytutors")
+		company.wallet.add(self.bookingID.commission)
+		self.receiverID.wallet.add(self.bookingID.tutoringFee)
+	def cancel(self):
+		self.status = Transaction.CN
+		self.save()
 
 class CourseCatalogue(models.Model):
 	courseCode = models.CharField(max_length=8, default="") #in format: COMP1234
@@ -350,8 +414,8 @@ class Coupon(models.Model):
 		return '%s' %(self.couponCode)
 
 class Review(models.Model):
-	studentID = models.ForeignKey(Student, related_name='r_student', on_delete=models.CASCADE)
-	tutorID = models.ForeignKey(Tutor, related_name='r_tutor', on_delete=models.CASCADE)
+	bookingID = models.OneToOneField(Booking,on_delete=models.CASCADE, default="")
+	title = models.TextField(default="")
 	description = models.TextField(default="")
 	rate = models.FloatField(default=0, null=True)
 
@@ -378,6 +442,8 @@ class Payment(models.Model):
 	bookingID = models.ForeignKey(Booking, related_name='p_bookingID', on_delete=models.CASCADE, null=True, default = "")
 	totalPayable = models.FloatField(null=False)
 	TP = "Tutorial Payment"
+	PG = 'Processing'
+	CD = 'Completed'
 	PAYMENTCHOICES = (
 		(TP, 'Tutorial Payment'),
 		)
@@ -386,6 +452,15 @@ class Payment(models.Model):
         choices=PAYMENTCHOICES,
         default=TP,
     )
+	STATUSCHOICES = (
+		(PG, 'Processing'),
+		(CD, 'Completed')
+	)
+	status= models.CharField(
+		max_length=2,
+	    choices=STATUSCHOICES,
+	    default=PG,
+		)
 	objects = PaymentManager()
 	def makePayment(self):
 		#get mytutor user instance
@@ -401,6 +476,11 @@ class Payment(models.Model):
 	def createTransaction(self):
 		t = Transaction.objects.create_transaction(self.senderID, self.receiverID, self.totalPayable, self.bookingID, Transaction.TP)
 		t.save()
+	def complete(self):
+		self.status = Payment.CD
+		self.save()
+		t = Transaction.objects.get(bookingID=self.bookingID)
+		t.complete()
 
 
 

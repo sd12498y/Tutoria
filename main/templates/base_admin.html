@@ -4,15 +4,10 @@
 <html>
 	<head>
 		<title>Tutoria</title>
-			{% isMyuser request.user as myuser %}
 		<meta name="viewport" content="width=device-width, iniBal-scale=1">
 		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
-		{% if request.user.is_staff %}
-		<link rel="stylesheet" href="{% static 'css/main_admin.css' %}">
-		{% else %}
-		<link rel="stylesheet" href="{% static 'css/main_user.css' %}">
-		{% endif %}
+		<link rel="stylesheet" href="{% static 'css/main4.css' %}">
 	    <link href="//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext" rel="stylesheet" type="text/css">
 	    <script src="{% static 'notifications/notify.js' %}" type="text/javascript"></script>
 	    <script src="{% static 'js/jquery.min.js' %}"></script>
@@ -25,7 +20,7 @@
 	{% register_notify_callbacks callbacks='custom_fill_notification_list,fill_notification_badge'%}
 	</head>
 	<body>
-		<nav class="navbar navbar-light navbar-fixed-top" role="navigation"> 
+		<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation"> 
 			<div class="container">
 				<div class="navbar-header">
                 	<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -34,36 +29,30 @@
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-					<a class="navbar-brand nav-user-text" href="{% url 'main:index' %}">Tutoria</a>
+					<a class="navbar-brand nav-text" href="{% url 'main:index' %}">Tutoria</a>
 			</div>
 	  			<div id="navbar" class="navbar-collapse collapse">
 					 <ul class="nav navbar-nav">
-						<li class="actve"><a href="{% url 'main:search' %}" class="nav-user-text">Home</a></li>
-						<li><a href="#" class="nav-user-text">Timetable</a></li>
-						<li><a href="#" class="nav-user-text">Message</a></li>
+						<li class="actve"><a href="{% url 'main:search' %}" class="nav-text" >Home</a></li>
+						<li><a href="#" class="nav-text">Timetable</a></li>
+						<li><a href="#" class="nav-text">Message</a></li>
 					</ul>
 				<ul class="nav navbar-nav navbar-right">
 
 					<li class="dropdown">
 						<a href="#" id="dropdownlist" class="dropdown-toggle" data-toggle="dropdown"
                          role="button" aria-haspopup="true" aria-expanded="false">
-                     		<span class="glyphicon glyphicon-bell nav-user-text">{% live_notify_badge classes="badge" %}</span></a>
+                     		<span class="glyphicon glyphicon-bell nav-text">{% live_notify_badge classes="badge" %}</span></a>
                      		<ul id='live_notify_list' class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                      		</ul>
 					</li>
 					<li class="dropdown">
-						<a class="dropdown-toggle nav-user-text" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hi! {{ request.user.username }}<span class="caret"></span></a>
+						<a class="dropdown-toggle nav-text" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hi! {{ request.user.username }}<span class="caret"></span></a>
 						  <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
-						  	{% if request.user.is_staff %}
-						    <li><a href="{% url 'main:manage_sessions' %}" class=""> Manage Sessions </a></li>
-						    {% endif %}
-						    {% if myuser%}
-						    <li><a href="{% url 'main:profile' %}">Profile</a></li>
-						    <li><a href="{% url 'main:bookingHistory' %}">Booking history</a></li>
-						    {% endif %}
-							<li><a href="{% url 'main:wallet' %}">Wallet</a></li>
+						    <li><a href="{% url 'main:manageSessions' %}" class=""> Manage Sessions </a></li>
+							<li><a href="{% url 'main:wallet' %}" class="">Wallet</a></li>
 						    <li role="separator" class="divider"></li>
-						    <li><a href="/logout">Log out</a></li></ul>
+						    <li><a href="/logout" class="">Log out</a></li></ul>
 						  </ul></li>
 				</div>
 			</div>

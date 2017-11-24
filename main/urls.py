@@ -41,4 +41,6 @@ urlpatterns = [
     url(r'^reset/done/$', views.passwordResetCompleteView.as_view(), name='password_reset_complete'),
     url(r'^password_change/$', views.passwordChangeView.as_view(), name='password_change'),
     url(r'^password_change/done/$', views.passwordChangeDoneView.as_view(), name='password_change_done'),
+    url(r'^manage_sessions/$', views.manage_sessions, name='manage_sessions'),
+    url(r'^end_all_sessions/$', views.end_all_sessions, name='end_all_sessions'),
 ]

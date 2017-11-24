@@ -20,7 +20,20 @@ def isTutor(user):
 		return False
 	else:
 		return True
+		
+@register.assignment_tag
+def isMyuser(user):
+	if hasattr(user, 'myuser') == False:
+		return False
+	else:
+		return True
 
+@register.assignment_tag
+def isAdmin(user):
+	if hasattr(user, 'myuser') == False:
+		return False
+	else:
+		return True
 @register.assignment_tag	
 def getType(user):
 	if hasattr(user.myuser.tutor, 'privatetutor') == False:
