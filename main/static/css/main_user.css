@@ -12,6 +12,9 @@ table.extimetable_container {
     width: 60px;
 }
 
-.navbar {
-	color: #ffffff;
+.nav-user-text{
+	color: #000000 !important;
+}
+nav {
+	background-color: #e3f2fd;
 }

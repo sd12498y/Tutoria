@@ -3,17 +3,27 @@
 <div class="container">
     <div class="row row-content">
         <div class="col-xs-12 col-md-8">
-		    {% if request.user.is_authenticated %}
-			<h2>{{ request.user.username }}'s Wallet</h2>
 
+		    {% if request.user.is_staff %}
+		    <h2>MyTutor's Wallet</h2>
+		    {% else %}
+			<h2>{{ request.user.username }}'s Wallet</h2>
+			{% endif %}
 			{% if error_message %}
 			<p><strong>{{ error_message }}</strong></p>
 			{% endif %}
-
+			{% if request.user.is_staff %}
+			<h3>MyTutor's Balance: {{request.user.staff.admin.wallet.balance}}</h3>
+			{% else %}
 			<h3>Your Balance: {{request.user.wallet.balance}}</h3>
+			{% endif %}
 		</div>
 	<div class="col-xs-12 col-md-4">
+		{% if request.user.is_staff %}
 		<h2><a href="addValue" class="btn btn-info" role="button">Add Value</a></h2>
+		{% else %}
+		<h2><a href="addValue" class="btn btn-info" role="button">Add Value</a></h2>
+		{% endif %}
 	</div>
 	</div>
 </div>
@@ -42,5 +52,4 @@
         </div>
     </div>
 </div>
-    {% endif %}
 {% endblock %}
