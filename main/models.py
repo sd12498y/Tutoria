@@ -283,7 +283,7 @@ class Wallet(models.Model):
 
 	def getHistory(self):
 		TodayDate = timezone.localtime(timezone.now()).date()
-		t_set = Transaction.objects.filter(Q(senderID=self.user) | Q(receiverID=self.user), timestamp__gte = (TodayDate - timedelta(days=30))).order_by('-timestamp')
+		t_set = Transaction.objects.filter(Q(senderID=self.user) | (Q(receiverID=self.user) & ~Q(status=Transaction.HG)), timestamp__gte = (TodayDate - timedelta(days=30))).order_by('-timestamp')
 		return t_set
 
 
@@ -332,7 +332,6 @@ class TransactionManager(models.Manager):
 class Transaction(models.Model):
 	timestamp = models.DateTimeField(default = timezone.localtime(timezone.now()))
 	AV = "Add Value"
-	RD = "Refund"
 	TP = "Tutorial Payment"	
 	TS = "Tutorial Salary"
 	HG = "Holding up by MyTutor"
@@ -340,7 +339,6 @@ class Transaction(models.Model):
 	CN = "Cancelled"
 	choices = (
 		(AV, 'Add Value'),
-		(RD, 'Refund'),
 		(TP, 'Tutorial Payment'),
 		)
 	senderID = models.ForeignKey(User, related_name='senderID', on_delete=models.CASCADE, default = "")
@@ -357,7 +355,7 @@ class Transaction(models.Model):
 		(CN, 'Cancelled')
 		)
 	status= models.CharField(
-		max_length=2,
+		max_length=30,
 	    choices=STATUSCHOICES,
 	    default=HG,
 		)
@@ -448,7 +446,7 @@ class Payment(models.Model):
 		(TP, 'Tutorial Payment'),
 		)
 	ptype = models.CharField(
-        max_length=2,
+        max_length=30,
         choices=PAYMENTCHOICES,
         default=TP,
     )
@@ -457,7 +455,7 @@ class Payment(models.Model):
 		(CD, 'Completed')
 	)
 	status= models.CharField(
-		max_length=2,
+		max_length=30,
 	    choices=STATUSCHOICES,
 	    default=PG,
 		)
