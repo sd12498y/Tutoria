@@ -1,0 +1,86 @@
+
+<script type="text/javascript">
+var global_buttonid;
+var status;
+
+var coursename;
+
+var firstload = 1;
+
+var settimetable = 0;
+
+
+
+function pressed(){
+  
+  
+  var i;
+  
+  var fp = document.getElementsByClassName("freePress");
+  for (i = 0; i < fp.length; i++) {
+      fp[i].disabled = true;
+      fp[i].style.backgroundColor= "#fff8e1";
+
+  }
+
+  var bp = document.getElementsByClassName("BookedPress");
+  
+  for (i = 0; i < bp.length; i++) {
+      bp[i].disabled = true;
+      bp[i].style.backgroundColor= "#004d40";
+      
+  }
+  var sdp = document.getElementsByClassName("SameDayPress");
+  
+  for (i = 0; i < sdp.length; i++) {
+      sdp[i].disabled = true;
+      sdp[i].style.backgroundColor= "#4B515D";
+      
+  }
+  var oobp = document.getElementsByClassName("OOBPress");
+  
+  for (i = 0; i < oobp.length; i++) {
+      oobp[i].disabled = true;
+      oobp[i].style.backgroundColor= "#000000";
+      
+  }
+}
+
+
+
+
+</script>
+    
+
+
+    
+    <form  action="/search/{{ TargetTutor.id }}/" method="get">
+      <input id="Book" type="submit" value="Detailed Profile" />
+    </form>
+
+    <h1 id="bio">Bio Timetable<h1>
+
+
+
+	 
+  
+	   
+     <input class="btn disabled" id="" type="button" value="Free" style="width:200px; background-color:#fff8e1;"/>
+     <input class="btn disabled" id="" type="button" value="Booked" style="width:200px; background-color:#004d40;"/>     
+     <input class="btn disabled" id="" type="button" value="Same Day" style="width:200px; background-color:#4B515D;"/>   
+     <input class="btn disabled" id="" type="button" value="Black Out/Unavailable" style="width:200px; background-color:#000000;"/>
+
+  
+                             
+     {% include 'timetable.html' %}
+     {% block timetable %}
+     {% endblock %}
+
+
+
+
+
+     
+{% block biotimetable %}
+{% endblock %}
+
