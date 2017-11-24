@@ -25,7 +25,11 @@ from django.utils.timezone import localtime
 import pprint
 import sys
 from .forms import SessionForm, StudentRegisterForm, TutorRegisterForm, BothRegisterForm
-
+from django.contrib.auth import views
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib import messages
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
 #Olivia: 7/11/17 14:50
 from django.db.models import Q
 import pytz
@@ -33,6 +37,25 @@ import pytz
 from django.core import serializers
 
 # Create your views here.
+class passwordResetView(views.PasswordResetView):
+    template_name="forgetPassword.html"
+
+class passwordResetDoneView(views.PasswordResetDoneView):
+    template_name="passwordResetSuccess.html"
+
+class passwordResetConfirmView(views.PasswordResetConfirmView):
+    template_name="passResetForm.html"
+    success_url="/reset/done/"
+
+class passwordResetCompleteView(views.PasswordResetCompleteView):
+    template_name="passwordResetComplete.html"
+
+class passwordChangeView(views.PasswordChangeView):
+    template_name="passwordChange.html"
+class passwordChangeDoneView(views.PasswordChangeDoneView):
+    template_name="passwordChangeDone.html"
+
+
 def getCommissionRate():
     return 0.05
 def checkCouponCode(request):

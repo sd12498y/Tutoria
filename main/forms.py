@@ -49,4 +49,3 @@ class BothRegisterForm(forms.Form):
 	description = forms.CharField()
 	type = forms.CharField()
 	hourly_rate = forms.FloatField()
-

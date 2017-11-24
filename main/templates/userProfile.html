@@ -78,31 +78,12 @@
         <input type="text" class="form-control is-invalid" id="username" name="username" placeholder="Username" value="{{ request.user.username }}" disabled required="" autofocus=""/>
   		</div>
       </div>
-      <div class="form-row" style="display: none;">
-      <div class="form-group col-md-12">
+      <div class="form-row">
+      <div class="form-group col-md-3">
             <label>Password</label>
-            <input type="password" class="form-control is-invalid" name="password1" id="password1Div" placeholder="Password" required="" onkeyup="validatePassword1()" />
-            <div class="invalid-feedback" id="password1Feedback">
-              Please provide a valid password.
-            </div>
-            <small id="passwordHelpBlock" class="form-text text-muted">
-            <i>
-            	<ul>
-      	      	<li>Your password can't be too similar to your other personal information.</li>
-      	      	<li>Your password must contain at least 8 characters.</li>
-      			<li>Your password can't be a commonly used password.</li>
-      			<li>Your password can't be entirely numeric.</li>
-      		</ul>
-      	</i></small>
       </div>
-  </div>
-  <div class="form-row" style="display: none;">
-      <div class="form-group col-md-12">
-    		<label>Password Confirmation </label>
-    		<input type="password" class="form-control is-invalid" name="password2" id="password2Div" placeholder="Confirm your Password" required="" onkeyup="validatePassword2()"  />
-        <div class="invalid-feedback" id="password2Feedback">
-        Password doesn't match.
-      </div>
+      <div class="form-group col-md-6">
+            <a href="/password_change" class="btn bth-sm btn-info"> Change password</a>
       </div>
   </div>
   <div class="form-row">

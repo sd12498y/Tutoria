@@ -34,5 +34,11 @@ urlpatterns = [
 	url(r'^review/$', views.review, name='review'),
 	url(r'^forget/$', views.forget, name='forget'),
 	url(r'^api/checkCouponCode/$', views.checkCouponCode, name='checkCouponCode'),
-
+	url(r'^password_reset/$', views.passwordResetView.as_view(), name='passwordResetView'),
+	url(r'^password_reset/done/$', views.passwordResetDoneView.as_view(), name='passwordResetDoneView'),
+    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        views.passwordResetConfirmView.as_view(), name='password_reset_confirm'),
+    url(r'^reset/done/$', views.passwordResetCompleteView.as_view(), name='password_reset_complete'),
+    url(r'^password_change/$', views.passwordChangeView.as_view(), name='password_change'),
+    url(r'^password_change/done/$', views.passwordChangeDoneView.as_view(), name='password_change_done'),
 ]
