@@ -107,6 +107,11 @@ def profile(request):
     return render(request,'userProfile.html', {'course_catalogue': course_catalogue,})
 
 def review(request):
+    if request.method == 'POST':
+        rating = request.POST.get("star_rating")
+        if request.POST.get("comment"):
+            print request.POST.get("comment")
+
     return render(request,'review.html')
 def forget(request):
     if request.method == "POST":
@@ -126,7 +131,11 @@ def updateprofile(request):
     if request.method=="POST":
         tutor = request.user.myuser.tutor
         tutor.description = request.POST.get("description","")
-        print request.POST.get("type","")
+        if request.POST.get("isactivated") == "on":
+            tutor.isactivated = True
+        else:
+            tutor.isactivated = False
+        #print request.POST.get("type","")
         if request.POST.get("type","")=="Private Tutor":
             print request.POST.get("hourly_rate","")
             tutor.privatetutor.hourlyRate = request.POST.get("hourly_rate","")
