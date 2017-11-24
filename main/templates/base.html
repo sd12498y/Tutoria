@@ -6,13 +6,15 @@
 		<meta name="viewport" content="width=device-width, iniBal-scale=1">
 		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
-		<link rel="stylesheet" href="{% static 'css/main.css' %}">
+		<link rel="stylesheet" href="{% static 'css/main2.css' %}">
 	    <link href="//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext" rel="stylesheet" type="text/css">
 	    <script src="{% static 'notifications/notify.js' %}" type="text/javascript"></script>
 	    <script src="{% static 'js/jquery.min.js' %}"></script>
 	    <!-- Include all compiled plugins (below), or include individual files as needed -->
 	    <script src="{% static 'js/bootstrap.min.js' %}"></script>
 	    <script src="{% static 'js/base.js' %}" type="text/javascript"></script>
+	    <script src="{% static 'star_rating/js/star-rating.js' %}" type="text/javascript"></script>
+	    <link href="{% static 'star_rating/css/star-rating.css' %}" media="all" rel="stylesheet" type="text/css" />
 
 	{% register_notify_callbacks callbacks='custom_fill_notification_list,fill_notification_badge'%}
 	</head>
@@ -33,7 +35,6 @@
 						<li class="actve"><a href="{% url 'main:search' %}">Home</a></li>
 						<li><a href="#">Timetable</a></li>
 						<li><a href="#">Message</a></li>
-						<li><a href="{% url 'main:wallet' %}">Wallet</a></li>
 					</ul>
 				<ul class="nav navbar-nav navbar-right">
 
@@ -44,8 +45,15 @@
                      		<ul id='live_notify_list' class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                      		</ul>
 					</li>
-					<li><a href="{% url 'main:bookingHistory' %}">Hi! {{ request.user.username }} </a></li>
-					<li><a href="/logout">Log out</a></li></ul>
+					<li class="dropdown">
+						<a class="dropdown-toggle" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hi! {{ request.user.username }}<span class="caret"></span></a>
+						  <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+						    <li><a href="{% url 'main:profile' %}">Profile</a></li>
+						    <li><a href="{% url 'main:bookingHistory' %}">Booking history</a></li>
+							<li><a href="{% url 'main:wallet' %}">Wallet</a></li>
+						    <li role="separator" class="divider"></li>
+						    <li><a href="/logout">Log out</a></li></ul>
+						  </ul></li>
 				</div>
 			</div>
 		</nav>

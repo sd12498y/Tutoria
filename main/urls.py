@@ -26,5 +26,9 @@ urlpatterns = [
 	url(r'^search/(?P<TutorID>[0-9]+)/confirmbooking/$', views.confirmBooking, name='confirmBooking'),
 	url(r'^api/checkUsername/$', views.checkUsername, name='checkUsername'),
 	url(r'^api/checkEmail/$', views.checkEmail, name='checkEmail'),
-
+	url(r'^api/getCourseSet/$', views.getCourseSet, name='getCourseSet'),
+	url(r'^profile/$', views.profile, name='profile'),
+	url(r'^updateprofile/$', views.updateprofile, name='updateprofile'),
+	url(r'^review/$', views.review, name='review'),
+	url(r'^forget/$', views.forget, name='forget'),
 ]
