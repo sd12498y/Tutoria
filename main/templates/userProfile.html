@@ -8,6 +8,8 @@
 		document.getElementById("edit").style.display = "none";
 		document.getElementById("description").removeAttribute("readonly", "");
     document.getElementById("isactivated").removeAttribute("disabled", "");
+
+    document.getElementById("tag").removeAttribute("readonly", "");
 		if (document.getElementById("type").value == 'Private Tutor'){
 			document.getElementById("hourly").removeAttribute("readonly", "");
 		}
@@ -177,19 +179,27 @@
           </div>
 
       </div>
+      
       {% endif %}
-      <div class="form-row tutor-course">
-      	<div class="form-group col-md-12">
-      	<label for="hourly">Tag:</label></div>
-      	{% for course in request.user.myuser.tutor.course_set.all %}
-      	<div class="form-group col-md-1">
-      		<h4><span class="label label-warning">{{ course.courseCode }}</span></h4>
-      	</div>
-      	{% endfor %}
+      <div class="form-row">
+        <div class="form-group col-md-12">
+          <label for="tag">Tag:</label>
+          <input type="text" name="tag" class="form-control" id="tag" value="{{ TagString }}" readonly="" onkeyup="">
         </div>
+
+      </div>
+      <div class="form-row tutor-course">
+        	<div class="form-group col-md-12">
+        	<label for="hourly">Course:</label></div>
+        	{% for course in request.user.myuser.tutor.course_set.all %}
+          	<div class="form-group col-md-1">
+          		<h4><span class="label label-warning">{{ course.courseCode }}</span></h4>
+          	</div>
+        	{% endfor %}
+          </div>
       <div class="form-row course-catalogue" id="course-catalogue" style="display: none;">
       	<div class="form-group col-md-12">
-      		<label for="hourly">Edit Tag:</label>
+      		<label for="hourly">Edit Course:</label>
       	{% for course in course_catalogue %}
       		<div class="checkbox">
 			  <label><input type="checkbox" name="courseCode" id="{{ course.courseCode }}" value="{{ course.courseCode }}" onchange="toggleCheckBox(this.id)">{{course.courseCode}}: {{course.courseName}}</label>
