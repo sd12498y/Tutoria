@@ -406,13 +406,13 @@ class SearchResultView(generic.ListView):
         Plist = []
         Clist = []
 
-        if showPref == "All":
+        if showPref == "All" and( (private and not contract) or (contract and not private)):
+            print "here"
             if private and not contract:
                 Result = PrivateTutor.objects.all()
             elif contract and not private:
                 Result = ContractTutor.objects.all()
-            else:
-                Result = Tutor.objects.all()
+
 
             Result = Result.exclude(user__user__username=username)
             if not fN == "":
@@ -434,52 +434,78 @@ class SearchResultView(generic.ListView):
             else:
                 result_list = Result.distinct() 
             #return result_list
+        else:
+            print "there"
+            if showPref == "All":
+                print "hereeee"
+                Presult = Presult.exclude(user__user__username=username)
+                Cresult = Cresult.exclude(user__user__username=username)
 
-        if showPref == "Seven":
-            #listofPTutor = PrivateTutor.objects.all()
-            #listofCTutor = ContractTutor.objects.all()
-            listofBookedtutor = Booking.objects.all()
-            print listofBookedtutor
-            listofBookedtutor =  listofBookedtutor.exclude(tutorID__user__username=username)
-            print listofBookedtutor
-            listofBlackout = Blackout.objects.all()
-            print listofBlackout
-            listofBlackout = listofBlackout.exclude(tutorID__user__user__username=username)
-            print listofBlackout
+                if not fN == "":
+                    print "123"
+                    Presult = Presult.filter(Q(user__user__first_name__iexact=fN))
+                    Cresult = Presult.filter(Q(user__user__first_name__iexact=fN))
+                if not lN == "":
+                    Presult = Presult.filter(Q(user__user__last_name__iexact=lN))
+                    Cresult = Presult.filter(Q(user__user__last_name__iexact=lN))
+                if not sch == "":
+                    Presult = Presult.filter(Q(university__iexact=sch))
+                    Cresult = Presult.filter(Q(university__iexact=sch))
+                if not cC == "":
+                    Presult = Presult.filter(Q(course__courseCode__courseCode__iexact=cC))
+                    Cresult = Presult.filter(Q(course__courseCode__courseCode__iexact=cC))
+                if not tg == "":
+                    Presult = Presult.filter(Q(tag__tag__iexact=tg))
+                    Cresult = Presult.filter(Q(tag__tag__iexact=tg))
+                Presult = Presult.filter(Q(hourlyRate__range=(hRL,hRU)))
+                Presult = Presult.filter(Q(isactivated=True)).order_by('-hourlyRate').distinct()
+                Cresult = Presult.filter(Q(isactivated=True))
 
-            #Booking.objects.values("id").annotate(Count("id"))
-            #Blackout.objects.values("id").annotate(Count("id"))
-            Result = Presult.exclude(user__user__username=username)
-            Presult = Presult.filter(isactivated=True).order_by('-hourlyRate').distinct()
+            if showPref == "Seven":
+                #listofPTutor = PrivateTutor.objects.all()
+                #listofCTutor = ContractTutor.objects.all()
+                listofBookedtutor = Booking.objects.all()
+                print listofBookedtutor
+                listofBookedtutor =  listofBookedtutor.exclude(tutorID__user__username=username)
+                print listofBookedtutor
+                listofBlackout = Blackout.objects.all()
+                print listofBlackout
+                listofBlackout = listofBlackout.exclude(tutorID__user__user__username=username)
+                print listofBlackout
 
-            for oneTutor in Presult:
-                count = 0
-                for oneBooking in listofBookedtutor:
-                    print oneBooking.tutorID.tutor.isactivated
-                    if oneBooking.tutorID == oneTutor.id: #not sure oneTutor.id is the id for tutor?
-                        count = count + 1
-                for oneBlackout in listofBlackout:
-                    if oneBlackout.tutorID == oneTutor.id:
-                        count = count + 1
-                if count < 168:
-                    Plist.append(oneTutor)
+                #Booking.objects.values("id").annotate(Count("id"))
+                #Blackout.objects.values("id").annotate(Count("id"))
+                Presult = Presult.exclude(user__user__username=username)
+                Presult = Presult.filter(isactivated=True).order_by('-hourlyRate').distinct()
 
-            Cresult = Cresult.exclude(user__user__username=username)
-            Cresult = Cresult.filter(isactivated=True).distinct()
-                #!!!isactivated=False
+                for oneTutor in Presult:
+                    count = 0
+                    for oneBooking in listofBookedtutor:
+                        print oneBooking.tutorID.tutor.isactivated
+                        if oneBooking.tutorID == oneTutor.id: #not sure oneTutor.id is the id for tutor?
+                            count = count + 1
+                    for oneBlackout in listofBlackout:
+                        if oneBlackout.tutorID == oneTutor.id:
+                            count = count + 1
+                    if count < 168:
+                        Plist.append(oneTutor)
 
-            #Cresult = Cresult.distinct()
-            for oneTutor in Cresult:
-                count = 0
-                for oneBooking in listofBookedtutor:
-                    if oneBooking.tutorID == oneTutor.id:
-                        count = count + 1
-                for oneBlackout in listofBlackout:
-                    if oneBlackout.tutorID == oneTutor.id:
-                        count = count + 1
-                if count < 336:
-                    Clist.append(oneTutor)
-            #print Clist
+                Cresult = Cresult.exclude(user__user__username=username)
+                Cresult = Cresult.filter(isactivated=True).distinct()
+                    #!!!isactivated=False
+
+                #Cresult = Cresult.distinct()
+                for oneTutor in Cresult:
+                    count = 0
+                    for oneBooking in listofBookedtutor:
+                        if oneBooking.tutorID == oneTutor.id:
+                            count = count + 1
+                    for oneBlackout in listofBlackout:
+                        if oneBlackout.tutorID == oneTutor.id:
+                            count = count + 1
+                    if count < 336:
+                        Clist.append(oneTutor)
+                #print Clist
             result_list = list(chain(Plist, Clist))
 
         return result_list #context
