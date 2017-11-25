@@ -2,7 +2,18 @@
 {% block content %}
 <div class="alert alert-success" role="alert">
   <h4 class="alert-heading">Well done!</h4>
-  <p>You have successfully created a(n) {{ type }} account on Tutoria!</p>
+  {% if type == "privatetutor" %}
+  <p>You have successfully created a private tutor account on Tutoria!</p>
+  {% endif %}
+  {% if type == "contracttutor" %}
+  <p>You have successfully created a contracted tutor account on Tutoria!</p>
+  {% endif %}
+   {% if type == "student" %}
+  <p>You have successfully created a student account on Tutoria!</p>
+  {% endif %}
+   {% if type == "both" %}
+  <p>You have successfully created a student and tutor account on Tutoria!</p>
+  {% endif %}
 </div>
 <a href = "/login/" class="btn btn-md btn-info btn-block" role="button" value="logIN">Log In Now</a>
 {% endblock %}

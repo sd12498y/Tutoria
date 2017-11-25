@@ -1,0 +1,80 @@
+{% extends 'registerForm.html' %}
+{% block lowerHalf %}
+<script type="text/javascript">
+  function toggleHourlyRate(){
+    var private = document.getElementById("private").checked;
+    var contract = document.getElementById("contract").checked;
+    console.log(private);
+    console.log(contract);
+    if (contract==true){
+      console.log("haha");
+      document.getElementById("hourly").value = 0;
+      document.getElementById("hourly").setAttribute("readonly","");
+    }
+    if (private==true){
+      console.log("haha");
+      document.getElementById("hourly").value = "";
+      document.getElementById("hourly").removeAttribute("readonly","");
+    }
+  }
+  function validateSchool1(){
+  var school = document.getElementById("school1").value;
+  var schoolDiv = document.getElementById("school1");
+  if (school.length == 0){
+      schoolDiv.classList.remove("is-valid");
+      schoolDiv.classList.add("is-invalid");
+      return false;
+  }else{
+      schoolDiv.classList.remove("is-invalid");
+      schoolDiv.classList.add("is-valid");
+      return true;
+  }
+}
+  function validateSchool2(){
+  var school = document.getElementById("school2").value;
+  var schoolDiv = document.getElementById("school2");
+  if (school.length == 0){
+      schoolDiv.classList.remove("is-valid");
+      schoolDiv.classList.add("is-invalid");
+      return false;
+  }else{
+      schoolDiv.classList.remove("is-invalid");
+      schoolDiv.classList.add("is-valid");
+      return true;
+  }
+}
+</script>
+      <label>You are a student at</label>
+      <div class="form-group">
+      <input type="text" class="form-control is-invalid" name="school1" id="school1" placeholder="" required="" autofocus="" onkeyup="validateSchool1()" />
+      <div class="invalid-feedback" id="schoolFeedback">
+              Please provide your university name.
+       </div>
+      </div>       
+      <label>You are a tutor at</label>
+      <div class="form-group">
+      <input type="text" class="form-control is-invalid" name="school2" id="school2" placeholder="" required="" autofocus="" onkeyup="validateSchool2()" />
+      <div class="invalid-feedback" id="schoolFeedback">
+              Please provide a valid school name.
+       </div>
+  	  </div>
+      <div class="form-group">
+          <label for="description">Description:</label>
+          <textarea class="form-control" rows="5" id="description" name="description"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="col-md-6 radio">
+        <label> <input type="radio" id="private" name="type" onclick="toggleHourlyRate()" value="private">  Private Tutor  </label>
+      </div>
+        <div class="col-md-6 radio">
+        <label> <input type="radio" id="contract" name="type" onclick="toggleHourlyRate()" value="contract">  Contracted Tutor  </label>
+      </div>
+      </div>
+      <div class="form-group">
+      <label for="hourly">Hourly rate:</label>
+        <input type="text" name="hourly_rate" class="form-control" id="hourly">
+      </div>
+      <button class="btn btn-md btn-info btn-block" type="submit" value="register_student">Register</button>
+      <a href = "{% url 'main:register' %}" class="btn btn-md btn-secondary btn-block" role="button" value="back">Back</a>
+      <i style="text-align:right; color:#A9A9A9">Step 2 of 2</i>
+{% endblock %}

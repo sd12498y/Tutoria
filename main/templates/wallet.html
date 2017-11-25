@@ -1,20 +1,53 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container">
-    <div class="row row-content">
-        <div class="col-xs-12 col-md-8">
-		    {% if request.user.is_authenticated %}
-			<h2>{{ request.user.username }}'s Wallet</h2>
+	<div class="row row-content">
+    <div class="row">
+        <div class="col-xs-12 col-md-9">
 
+		    {% if request.user.is_staff %}
+		    <h2>MyTutor's Wallet</h2>
+		    {% else %}
+			<h2>{{ request.user.username }}'s Wallet</h2>
+			{% endif %}
 			{% if error_message %}
 			<p><strong>{{ error_message }}</strong></p>
 			{% endif %}
-
+			{% if request.user.is_staff %}
+			<h3>MyTutor's Balance: {{request.user.staff.admin.wallet.balance}}</h3>
+			{% else %}
 			<h3>Your Balance: {{request.user.wallet.balance}}</h3>
+			{% endif %}
 		</div>
-	<div class="col-xs-12 col-md-4">
-		<h2><a href="addValue" class="btn btn-info" role="button">Add Value</a></h2>
 	</div>
+	<div class="row">
+	<div class="col-xs-12 col-md-3">
+			<div class="input-group">
+      		<input type="number" class="form-control" placeholder="amount" value=100>
+      		<span class="input-group-btn">
+		{% if not request.user.is_staff %}
+        	<a class="btn btn-info" type="button" href="addValue/">Add Value</a>
+		{% else %}
+        	<a class="btn btn-info" type="button" href="addValue_admin/">Add Value</a>
+		{% endif %}
+		    </span>
+     		 </div>
+     		</div>
+     		<div class="row">
+     			<div class="col-xs-12 col-md-3">
+			<div class="input-group">
+      		<input type="number" class="form-control" placeholder="amount" value=100>
+      		<span class="input-group-btn">
+		{% if not request.user.is_staff %}
+		      <a class="btn btn-info" type="button" href="withDrawValue/">Withdraw Value</a>
+		{% else %}
+		      <a class="btn btn-info" type="button" href="withDrawValue_admin/">Withdraw Value</a>
+		{% endif %}
+			</span>
+     		 </div>
+     		</div>
+     	</div>
+     </div>
 	</div>
 </div>
 <div class="container">
@@ -26,11 +59,26 @@
 			    {% for record in transaction_history %}
 			     <div class="row row-content">
         			<div class="col-xs-12 col-md-8">
+        				{% if record.action == "Tutorial Payment" %}
         				<p>Payer: {{record.senderID.username}}</p>
         				<p>Receiver: {{record.receiverID.username}}</p>
-			       	 	<p>Amount: ${{ record.transactionAmount }}</p>			       	 	
+        				{% else %}
+        				<p>Actor: {{record.senderID.username}}</p>
+        				{% endif %}
+			       	 	<p>Amount: ${{ record.transactionAmount }}</p>
+			       	 	{% if record.bookingID %}			       	 	
 			       	 	<p>Booking ID: {{ record.bookingID.id }}</p>
-			       	 	<p>{{record.action}}</p>
+			       	 	{% endif %}
+			       	 	{% if record.action == "Tutorial Payment" and request.user == record.senderID %}
+			       	 	<p>Type: Outgoing payment</p>
+			       	 	{% elif record.action == "Tutorial Payment" and request.user == record.receiverID %}
+			       	 	<p>Type: Incoming payment</p>
+			       	 	{% else %}
+			       	 	<p>Type: {{record.action}}</p>
+			       	 	{% endif %}
+			       	 	{% if record.action == "Tutorial Payment" %}
+			       	 	<p>Status: {{record.status}}</p>
+			       	 	{% endif %}
 			       	 	<p>At: {{record.timestamp}}</p>
 			        </div>
 			    </div>
@@ -42,5 +90,4 @@
         </div>
     </div>
 </div>
-    {% endif %}
 {% endblock %}

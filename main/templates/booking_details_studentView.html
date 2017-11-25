@@ -3,6 +3,11 @@
                 <h5><a href="{% url 'main:cancel' booking.id %}" class="btn btn-danger" role="button">Cancel Booking</a></h5>
       </div>
      {% endif %}
+    {% if booking.isReview and booking.studentID == request.user.myuser %}
+          <div class="col-xs-12 col-md-4">
+                <h5><a href="{% url 'main:cancel' booking.id %}" class="btn btn-info" role="button">Review</a></h5>
+          </div>
+         {% endif %}
 <div class="row">
     <div class="col-xs-12 col-md-8">
         

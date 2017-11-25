@@ -8,6 +8,13 @@
     console.log(contract);
     if (contract==true){
       console.log("haha");
+      document.getElementById("hourly").value = 0;
+      document.getElementById("hourly").setAttribute("readonly","");
+    }
+    if (private==true){
+      console.log("haha");
+      document.getElementById("hourly").value = "";
+      document.getElementById("hourly").removeAttribute("readonly","");
     }
   }
 </script>       
@@ -19,20 +26,20 @@
        </div>
   	  </div>
       <div class="form-group">
-          <label for="comment">Description:</label>
-          <textarea class="form-control" rows="5" id="comment"></textarea>
+          <label for="description">Description:</label>
+          <textarea class="form-control" rows="5" id="description" name="description"></textarea>
       </div>
       <div class="form-row">
         <div class="col-md-6 radio">
-        <label> <input type="radio" id="private" name="type" onclick="toggleHourlyRate()">  Private Tutor  </label>
+        <label> <input type="radio" id="private" name="type" onclick="toggleHourlyRate()" value="private">  Private Tutor  </label>
       </div>
         <div class="col-md-6 radio">
-        <label> <input type="radio" id="contract" name="type" onclick="toggleHourlyRate()">  Contracted Tutor  </label>
+        <label> <input type="radio" id="contract" name="type" onclick="toggleHourlyRate()" value="contract">  Contracted Tutor  </label>
       </div>
       </div>
       <div class="form-group">
       <label for="hourly">Hourly rate:</label>
-        <input type="text" class="form-control" id="hourly">
+        <input type="text" name="hourly_rate" class="form-control" id="hourly">
       </div>
       <button class="btn btn-md btn-info btn-block" type="submit" value="register_student">Register</button>
       <a href = "{% url 'main:register' %}" class="btn btn-md btn-secondary btn-block" role="button" value="back">Back</a>

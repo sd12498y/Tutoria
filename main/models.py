@@ -16,6 +16,7 @@ from django.core import serializers
 from django.http import JsonResponse
 import time
 from datetime import datetime, date, time, timedelta
+from django.core.mail import EmailMultiAlternatives
 
 import pytz
 
@@ -36,6 +37,13 @@ class myUser(models.Model):
 		return '%s' % (self.user.username)
 	
 
+class myTutor(models.Model):
+	staff = models.OneToOneField(User, related_name='staff', on_delete=models.CASCADE)
+	admin = models.ForeignKey(User, related_name='admin', on_delete=models.CASCADE)
+
+	def __str__(self):
+		return '%s' % (self.staff.username)
+
 class StudentManager(models.Manager):
 	def create_student(self, user, university):
 		student = self.create(user=user, university=university)
@@ -51,10 +59,14 @@ class Student (models.Model):
 
 
 class TutorManager(models.Manager):
-	def create_tutor(self, user, university, description):
-		tutor = self.create(user=user, university=university, description=description)
-		return tutor
-	
+	def create_tutor(self, user, university, description, type, hourlyRate):
+		if type=="private":
+			return self.create(user=user, university=university, description=description, hourlyRate=hourlyRate)
+		else:
+			return self.create(user=user, university=university, description=description)
+	def getRelatedBooking(self, sessionDate):
+		relatedBooking = Booking.objects.filter(Q(status="not yet begun") | Q(status="locked")| Q(status="completed"), tutorID = self.user, sessionDate = sessionDate)
+		return relatedBooking
 
 
 class Tutor(models.Model):
@@ -62,8 +74,9 @@ class Tutor(models.Model):
 	user = models.OneToOneField(myUser, on_delete=models.CASCADE)
 	university = models.CharField(max_length=50)
 	description = models.TextField()
+	isactivated = models.BooleanField(default=True)
 	
-	#objects = TutorManager()
+	objectManager = TutorManager()
 	objects = InheritanceManager()
 
 	def __str__(self):
@@ -216,20 +229,6 @@ class Wallet(models.Model):
 		else:
 			return True
 			
-	def addValue(self,value):
-		self.balance += value
-		self.save()
-		t = Transaction(payer=self.user, receiver=self.user, amount=value, action="Add Value")
-		t.save()
-		notify.send(self.user, recipient=self.user, verb='New value has been added to your wallet')
-		send_mail(
-		    'Value added to your wallet',
-		    'Here is the message.',
-		    'system@solveware.com',
-		    ['s030046@gmail.com'],
-		    fail_silently=False,
-		)
-		return
 	def refund(self,value,tutor):
 		self.balance += value
 		self.save()
@@ -246,6 +245,31 @@ class Wallet(models.Model):
 		)
 		return
 
+	def add(self,value):
+		self.balance += value
+		self.save()
+		notify.send(self.user, recipient=self.user, verb='$'+str(value)+' has been added to your wallet')
+		send_mail(
+		    '$'+str(value)+' has been added to your wallet',
+		    'Hello ' + self.user.username + '. This is to notify you that $' + str(value) +' has recently been added to your wallet',
+		    'system@solveware.com',
+		    [self.user.email],
+		    fail_silently=False,
+		)
+		return
+
+	def minus(self,value):
+		self.balance -= value
+		self.save()
+		notify.send(self.user, recipient=self.user, verb='$'+str(value)+' has been deducted to your wallet')
+		send_mail(
+		    '$'+str(value)+' has been deducted to your wallet',
+		    'Hello ' + self.user.username + '. This is to notify you that $'+str(value)+' has recently been deducted to your wallet',
+		    'system@solveware.com',
+		    [self.user.email],
+		    fail_silently=False,
+		)
+		return
 	def getBalance(self):
 		return self.balance
 
@@ -254,7 +278,7 @@ class Wallet(models.Model):
 
 	def getHistory(self):
 		TodayDate = timezone.localtime(timezone.now()).date()
-		t_set = Transaction.objects.filter(Q(senderID=self.user) | Q(receiverID=self.user), timestamp__gte = (TodayDate - timedelta(days=30))).order_by('-timestamp')
+		t_set = Transaction.objects.filter(Q(senderID=self.user) | (Q(receiverID=self.user) & ~Q(status=Transaction.HG)), timestamp__gte = (TodayDate - timedelta(days=30))).order_by('-timestamp')
 		return t_set
 
 
@@ -275,7 +299,10 @@ class Booking(models.Model):
 	commission = models.FloatField(default=0, null=True)
 	#status = "not yet begun","locked", "end", "cancelled"
 	status = models.CharField(max_length=20)
+
 	objects = BookingManager()
+
+	isReivew = models.BooleanField(default=False)
 
 	def __str__(self):
 		return '%s booked %s' %(self.studentID.user.username, self.tutorID.user.username)
@@ -300,23 +327,55 @@ class Booking(models.Model):
 			return False
 		
 
+	def end(self):
+		self.status = "ended"
+		self.save()
+		p = Payment.objects.get(bookingID=self.id)
+		p.complete()
+		send_mail(
+	    'Review Invitation',
+	    'Hello '+self.studentID.user.username+'. How is your experience in the tutorial session with ' + self.tutorID.user.username + ' ? Submit a review to rate your experience following this link: http://localhost:8000/'+self.id+'/review/',
+	    'system@solveware.com',
+	    [self.studentID.user.email],
+	    fail_silently=False,
+		)
+
+
+	def cancel(self):
+		self.status = "cancelled"
+		self.save()
+		notify.send(self.tutorID.user, recipient=self.tutorID.user, verb='Booking'+ self.bookingID + 'has been cancelled.' )
+		notify.send(self.studentID.user, recipient=self.studentID.user, verb='Booking'+ self.bookingID + 'has sucessfully been cancelled.' )
+		send_mail(
+	    'Booking cancellation',
+	    'Booking has been cancelled.',
+	    'system@solveware.com',
+	    ['test@solveware.com'],
+	    fail_silently=False,
+		)
+
+
 
 class TransactionManager(models.Manager):
 	def create_transaction(self, senderID, receiverID, transactionAmount, bookingID, action):
 		t = self.create(senderID=senderID, receiverID=receiverID, transactionAmount=transactionAmount, bookingID=bookingID, action=action)
+		t.begin()
 		return t
 
 
 class Transaction(models.Model):
 	timestamp = models.DateTimeField(default = timezone.localtime(timezone.now()))
 	AV = "Add Value"
-	RD = "Refund"
 	TP = "Tutorial Payment"	
 	TS = "Tutorial Salary"
+	HG = "Holding up by MyTutor"
+	TD = "Transferred"
+	CN = "Cancelled"
+	WL = 'Withdrawl'
 	choices = (
 		(AV, 'Add Value'),
-		(RD, 'Refund'),
 		(TP, 'Tutorial Payment'),
+		(WL, 'Withdrawl'),
 		)
 	senderID = models.ForeignKey(User, related_name='senderID', on_delete=models.CASCADE, default = "")
 	receiverID = models.ForeignKey(User, related_name='receiverID', on_delete=models.CASCADE, default = "")
@@ -326,12 +385,34 @@ class Transaction(models.Model):
 		max_length=30,
 		choices = choices,
 		)
+	STATUSCHOICES = (
+		(HG, 'Holding up by MyTutor'),
+		(TD, 'Transferred'),
+		(CN, 'Cancelled'),
+		)
+	status= models.CharField(
+		max_length=30,
+	    choices=STATUSCHOICES,
+	    default=HG,
+		)
 
 	objects = TransactionManager()
 
-
 	def __str__(self):
-		return '%s to %s : %s' %(self.payer.user.username, self.receiver.user.username, self.action)
+		return '%s to %s : %s : %s' %(self.senderID.username, self.receiverID.username, self.action, self.status)
+	def begin(self):
+		self.senderID.wallet.minus(self.transactionAmount)
+	def complete(self):
+		self.status = Transaction.TD
+		self.save()
+		company = User.objects.get(username="mytutors")
+		company.wallet.add(self.bookingID.commission)
+		self.receiverID.wallet.add(self.bookingID.tutoringFee)
+
+	def cancel(self):
+		self.bookingID.cancel()
+		self.status = Transaction.CN
+		self.save()
 
 class CourseCatalogue(models.Model):
 	courseCode = models.CharField(max_length=8, default="") #in format: COMP1234
@@ -376,10 +457,16 @@ class Coupon(models.Model):
 		return '%s' %(self.couponCode)
 
 class Review(models.Model):
-	studentID = models.ForeignKey(Student, related_name='r_student', on_delete=models.CASCADE)
-	tutorID = models.ForeignKey(Tutor, related_name='r_tutor', on_delete=models.CASCADE)
+	tutorID = models.ForeignKey(Tutor,on_delete=models.CASCADE, default="")
+	studentID = models.ForeignKey(Student,on_delete=models.CASCADE, default="")
+	bookingID = models.OneToOneField(Booking,on_delete=models.CASCADE, default="")
 	description = models.TextField(default="")
 	rate = models.FloatField(default=0, null=True)
+	timestamp = models.DateTimeField(default = timezone.now)
+
+
+	def __str__(self):
+		return '%s' %(self.bookingID.id)
 
 class BlackoutManager(models.Manager):
 	def create_blackout(self, tutorID, date, startTime, endTime):
@@ -410,14 +497,25 @@ class Payment(models.Model):
 	bookingID = models.ForeignKey(Booking, related_name='p_bookingID', on_delete=models.CASCADE, null=True, default = "")
 	totalPayable = models.FloatField(null=False)
 	TP = "Tutorial Payment"
+	PG = 'Processing'
+	CD = 'Completed'
 	PAYMENTCHOICES = (
 		(TP, 'Tutorial Payment'),
 		)
 	ptype = models.CharField(
-        max_length=2,
+        max_length=30,
         choices=PAYMENTCHOICES,
         default=TP,
     )
+	STATUSCHOICES = (
+		(PG, 'Processing'),
+		(CD, 'Completed')
+	)
+	status= models.CharField(
+		max_length=30,
+	    choices=STATUSCHOICES,
+	    default=PG,
+		)
 	objects = PaymentManager()
 	def makePayment(self):
 		#get mytutor user instance
@@ -433,6 +531,11 @@ class Payment(models.Model):
 	def createTransaction(self):
 		t = Transaction.objects.create_transaction(self.senderID, self.receiverID, self.totalPayable, self.bookingID, Transaction.TP)
 		t.save()
+	def complete(self):
+		self.status = Payment.CD
+		self.save()
+		t = Transaction.objects.get(bookingID=self.bookingID)
+		t.complete()
 
 
 

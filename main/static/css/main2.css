@@ -1,0 +1,17 @@
+.row-content {
+  margin: 0px auto;
+  padding: 10px 0px 50px 0px;
+  border-bottom: 1px ridge;
+}
+body {
+  padding-top: 70px;
+}
+
+table.extimetable_container {
+    height: 20px;
+    width: 60px;
+}
+
+.navbar {
+	color: #ffffff;
+}

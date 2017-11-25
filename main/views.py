@@ -10,7 +10,7 @@ from django.views import generic
 from django.contrib import auth
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
-from .models import myUser, Tutor, PrivateTutor, ContractTutor, Booking, Transaction, Wallet, Session, Course, Coupon, Student, Blackout, Payment
+from .models import myUser, Tutor, PrivateTutor, ContractTutor, Booking, Transaction, Wallet, Session, Course, Coupon, Student, Blackout, Payment,CourseCatalogue, Review
 from django.db.models import Q
 from notifications.signals import notify
 from django.shortcuts import get_object_or_404
@@ -24,17 +24,47 @@ from django.utils import timezone
 from django.utils.timezone import localtime
 import pprint
 import sys
-from .forms import SessionForm, StudentRegisterForm
-
+from .forms import SessionForm, StudentRegisterForm, TutorRegisterForm, BothRegisterForm
+from django.contrib.auth import views
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib import messages
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
 #Olivia: 7/11/17 14:50
 from django.db.models import Q
 import pytz
-
+from django.contrib.admin.views.decorators import staff_member_required
 from django.core import serializers
 
 # Create your views here.
+class passwordResetView(views.PasswordResetView):
+    template_name="forgetPassword.html"
+
+class passwordResetDoneView(views.PasswordResetDoneView):
+    template_name="passwordResetSuccess.html"
+
+class passwordResetConfirmView(views.PasswordResetConfirmView):
+    template_name="passResetForm.html"
+    success_url="/reset/done/"
+
+class passwordResetCompleteView(views.PasswordResetCompleteView):
+    template_name="passwordResetComplete.html"
+
+class passwordChangeView(views.PasswordChangeView):
+    template_name="passwordChange.html"
+class passwordChangeDoneView(views.PasswordChangeDoneView):
+    template_name="passwordChangeDone.html"
+
+
 def getCommissionRate():
     return 0.05
+
+def checkEnough(request):
+    if request.method == 'GET':
+        amount = request.GET.get('amount',"")
+        exists = request.user.wallet.enough(amount)
+        return JsonResponse({'exists': exists})
+    
 def checkCouponCode(request):
     if request.method == 'GET':
         inputcode = request.GET.get('InCoupon',"")
@@ -48,18 +78,113 @@ def checkUsername(request):
         username = request.GET.get('username',"")
         exists = User.objects.filter(username=username).exists()
         return JsonResponse({'exists': exists})
+
 def checkEmail(request):
     if request.method == 'GET':
+        if request.GET.get('username') and request.GET.get('email'):
+            if User.objects.filter(username=request.GET.get('username')).exists():                
+                user = User.objects.get(username=request.GET.get('username'))
+                if user.email == request.GET.get('email'):
+                    return JsonResponse({'valid': True})
+            else:
+                return JsonResponse({'valid': False})
         email = request.GET.get('email',"")
         exists = User.objects.filter(email=email).exists()
         return JsonResponse({'exists': exists})
 
+def getCourseSet(request):
+    if request.method == 'GET':
+        course_set = request.user.myuser.tutor.course_set.all()
+        course_list = []
+        for course in course_set:
+            course_list.append(course.courseCode.courseCode)
+        return JsonResponse({'course_list': course_list})
+
+def getCommissionRate():
+    return 0.05
 
 def login(request):
 	if request.user.is_authenticated:
 		return HttpResponseRedirect(reverse('main:index'))
 	else:
 		return HttpResponseRedirect('/login/')
+
+@staff_member_required
+def manage_sessions(request):
+    return render(request,'manageSessions.html')
+
+def bio_review(request, TutorID):
+    #print request.user.myuser.id
+    myuser = myUser.objects.get(id=TutorID)
+    review_list = myuser.tutor.review_set.all().order_by('-timestamp')
+    return render(request,'comment.html', {'review_list': review_list})
+
+def end_all_sessions(request):
+    booking_list = Booking.objects.filter(Q(sessionDate__lte=timezone.localtime(timezone.now()).date()), Q(endTime__lte = timezone.localtime(timezone.now()).time()), ~Q(status="ended"))
+    for booking in booking_list:
+        booking.end()
+    return redirect('main:manage_sessions')
+
+def profile(request):
+    course_catalogue = CourseCatalogue.objects.all().distinct()
+    return render(request,'userProfile.html', {'course_catalogue': course_catalogue,})
+
+def review(request, bookingID):
+    if hasattr(request.user,"myuser"):
+        booking = Booking.objects.get(id=bookingID)
+        if request.user.myuser == booking.studentID:
+            if request.method == 'POST':
+                rating = request.POST.get("star_rating")
+                if request.POST.get("comment"):
+                    comment = request.POST.get("comment")
+                booking.isReiew = True
+                booking.save()
+                review = Review(tutorID=booking.tutorID.tutor,studentID=booking.studentID.student, bookingID=booking, rate=rating, description=comment)
+                review.save()
+            return render(request,'review.html')
+    return redirect('main:index')
+def forget(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        user = User.objects.get(username=username)
+        send_mail(
+            'Retrieve Password',
+            'Hello '+ username + ". Here is your password: "+user.password,
+            'myTutor@solveware.com',
+            [email],
+            fail_silently=False,
+        )
+    return render(request,'forgetPassword.html')
+
+def updateprofile(request):
+    if request.method=="POST":
+        tutor = request.user.myuser.tutor
+        tutor.description = request.POST.get("description","")
+        if request.POST.get("isactivated") == "on":
+            tutor.isactivated = True
+        else:
+            tutor.isactivated = False
+        #print request.POST.get("type","")
+        if request.POST.get("type","")=="Private Tutor":
+            print request.POST.get("hourly_rate","")
+            tutor.privatetutor.hourlyRate = request.POST.get("hourly_rate","")
+            tutor.privatetutor.save()
+        tutor.save()
+        course = request.POST.getlist("courseCode","")
+        hiddencourse = request.POST.getlist("hiddenCourseCode","")
+        for courseCode in course:
+            courseObj = CourseCatalogue.objects.get(courseCode=courseCode)
+            if not request.user.myuser.tutor.course_set.all().filter(courseCode=courseObj).exists():
+                tag = Course(tutorID=request.user.myuser.tutor, courseCode=courseObj)
+                tag.save()
+        for hiddencourseCode in hiddencourse:
+            courseObject = CourseCatalogue.objects.filter(courseCode=hiddencourseCode)
+            teachIn = Course.objects.filter(courseCode=courseObject)
+            for x in teachIn:
+                teachIn.delete()
+    return redirect('main:profile')
+
 def register(request):
     template = loader.get_template('register.html')
     context={}
@@ -68,6 +193,9 @@ def register(request):
             return HttpResponseRedirect(reverse('main:reg_student'))
         elif 'reg_tutor' in request.POST:
             return HttpResponseRedirect(reverse('main:reg_tutor'))
+        else:
+            return HttpResponseRedirect(reverse('main:reg_both'))
+
     return HttpResponse(template.render(context, request))
 
 def reg_student(request):
@@ -77,7 +205,11 @@ def reg_student(request):
             usr = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password1'])
             usr.first_name = form.cleaned_data['firstName']
             usr.last_name = form.cleaned_data['lastName']
-            myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
+            if form.cleaned_data['image'] == None:
+                print "here"
+                myUsr = myUser(user=usr, tel=form.cleaned_data['tel'])
+            else:
+                myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
             school = request.POST['school']
             usr.save()
             wallet = Wallet(user=usr,balance=0)
@@ -90,21 +222,56 @@ def reg_student(request):
 
 def reg_tutor(request):
     if request.method=="POST":
-        form = StudentRegisterForm(request.POST, request.FILES)
+        form = TutorRegisterForm(request.POST, request.FILES)
         if form.is_valid():
             usr = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password1'])
             usr.first_name = form.cleaned_data['firstName']
             usr.last_name = form.cleaned_data['lastName']
-            myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
+            if form.cleaned_data['image'] == None:
+                print "here"
+                myUsr = myUser(user=usr, tel=form.cleaned_data['tel'])
+            else:
+                myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
             school = request.POST['school']
-            usr.save()
             wallet = Wallet(user=usr,balance=0)
+            usr.save()
             wallet.save()
             myUsr.save()
-            stud = Student.objects.create_student(myUsr, school)
-            stud.save()
-            return redirect('main:reg_success', type="student")
+            if form.cleaned_data['type']=="private":
+                tutor = PrivateTutor.objectManager.create_tutor(myUsr, school,form.cleaned_data['description'], form.cleaned_data['type'], form.cleaned_data['hourly_rate'])
+            else:
+                tutor = ContractTutor.objectManager.create_tutor(myUsr, school,form.cleaned_data['description'], form.cleaned_data['type'], form.cleaned_data['hourly_rate'])          
+            tutor.save()
+            return redirect('main:reg_success', type= form.cleaned_data['type'] + "tutor")
     return render(request,'reg_tutor.html')
+
+def reg_both(request):
+    if request.method=="POST":
+        form = BothRegisterForm(request.POST, request.FILES)
+        if form.is_valid():
+            usr = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password1'])
+            usr.first_name = form.cleaned_data['firstName']
+            usr.last_name = form.cleaned_data['lastName']
+            if form.cleaned_data['image'] == None:
+                print "here"
+                myUsr = myUser(user=usr, tel=form.cleaned_data['tel'])
+            else:
+                myUsr = myUser(user=usr, tel=form.cleaned_data['tel'], profilePicture=form.cleaned_data['image'])
+            school1 = form.cleaned_data['school1']
+            school2 = form.cleaned_data['school2']
+            wallet = Wallet(user=usr,balance=0)
+            usr.save()
+            wallet.save()
+            myUsr.save()
+            stud = Student.objects.create_student(myUsr, school1)
+            stud.save()
+            if form.cleaned_data['type']=="private":
+                tutor = PrivateTutor.objectManager.create_tutor(myUsr, school2,form.cleaned_data['description'], form.cleaned_data['type'], form.cleaned_data['hourly_rate'])
+            else:
+                tutor = ContractTutor.objectManager.create_tutor(myUsr, school2,form.cleaned_data['description'], form.cleaned_data['type'], form.cleaned_data['hourly_rate'])          
+            tutor.save()
+            return redirect('main:reg_success', type= "both")
+    return render(request,'reg_both.html')
 
 def reg_success(request, type):
     return render(request,'registerSuccess.html', {'type': type,})
@@ -128,8 +295,37 @@ class WalletView(generic.ListView):
 
 
 def addValue(request):
-	request.user.wallet.addValue(100)
-	return HttpResponseRedirect(reverse('main:wallet'))
+    request.user.wallet.add(100)
+    value=100
+    t = Transaction(senderID=request.user, receiverID=request.user, transactionAmount=value, action="Add Value", status=Transaction.TD)
+    print "!23"
+    t.save()
+    return HttpResponseRedirect(reverse('main:wallet'))
+
+def withDrawValue(request):
+    request.user.wallet.minus(100)
+    value=100
+    t = Transaction(senderID=request.user, receiverID=request.user, transactionAmount=value, action=Transaction.WL, status=Transaction.TD)
+    t.save()
+    return HttpResponseRedirect(reverse('main:wallet'))
+
+@staff_member_required    
+def addValue_admin(request):
+    value=100
+    admin = User.objects.get(username="mytutors")
+    admin.wallet.add(100)
+    t = Transaction(senderID=request.user, receiverID=admin, transactionAmount=value, action="Add Value", status=Transaction.TD)
+    t.save()
+    return HttpResponseRedirect(reverse('main:wallet'))
+
+@staff_member_required    
+def withDrawValue(request):
+    value=100
+    admin = User.objects.get(username="mytutors")
+    admin.wallet.minus(100)
+    t = Transaction(senderID=admin, receiverID=admin, transactionAmount=value, action=Transaction.WL, status=Transaction.TD)
+    t.save()
+    return HttpResponseRedirect(reverse('main:wallet'))
 
 class BookingHistoryView(generic.ListView):
     template_name = 'booking_history.html'

@@ -5,11 +5,13 @@
     {% csrf_token %}       
       <h2 class="form-signin-heading">Welcome to Tutoria</h2>
       <h5>Please log in</h5>
+      <div class="row">
+        <div class="col-md-12 text-right"><a href="/password_reset/"> Forget Password?</a></div>
+      </div>
       <input type="text" class="form-control" name="username" placeholder="Username" required="" autofocus="" />
-      <input type="password" class="form-control" name="password" placeholder="Password" required=""/>      
-      <label class="checkbox">
-        <input type="checkbox" value="remember-me" id="rememberMe" name="rememberMe"> Remember me
-      </label>
+    </br>
+      <input type="password" class="form-control" name="password" placeholder="Password" required=""/>
+    </br>
       <button class="btn btn-md btn-info btn-block" type="submit" value="login">Login</button>
       <a href = "/register/" class="btn btn-md btn-secondary btn-block" role="button" value="register">Register Now</a>
     </form>
