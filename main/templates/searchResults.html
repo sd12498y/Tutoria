@@ -14,16 +14,32 @@
         <div class="col-xs-12 col-md-9">
             <div class="media">
                 <div class="media-left">
-                    <img class="media-object pull-left" style="width:90px;    padding-right: 10px;" src="{{Tutor.user.profilePicture.url}}"/>
+                    <img class="media-object pull-left" style="width:90px;padding-right: 10px;" src="/{{Tutor.user.profilePicture.url}}"/>
                 </div>
                 <div class="media-body">
                     <h2 class="media-heading">
                     Tutor Name: {{Tutor.user.user.first_name}}</h2>
                     <p>University: {{Tutor.university}}
-                    </br>Hourly rate:{{Tutor.hourlyRate}}</p>
+                    </br>Hourly rate: {{Tutor.hourlyRate}}
+                    <br>Subject tag: <!--{{Tutor.tag.tag}}-->
+                    {% for course in Tutor.course_set.all %}
+                            <span class="label label-warning">{{course.courseCode}}</span>
+                    {% endfor %}
+                    <br>Tag: <!--{{Tutor.tag.tag}}-->
+                    {% for tag in Tutor.tag_set.all %}
+                            <span class="label label-warning">{{tag.tag}}</span>
+                    {% endfor %}
+
+                  <!--</br>Average review:{{Tutor.}}-->
+                  </p>
                 </div>
             </div>
         </div>
+        <div>
+          {% for Tag in ListofTag %}
+
+                  {{Tag.tag}} {{Tag.TutorID}}
+          {% endfor %}
         <div class="col-xs-12 col-md-3">
             <h4><a href="{% url 'main:bio' Tutor.id %}" class="btn btn-info" role="button"> Book</a></h4>
         </div>
@@ -39,5 +55,5 @@
 
                         <form action=url(r'^tutor/', include('tutor.urls'))>
                             <input type="submit" value="Book" />
-                        </form> 
+                        </form>
                         <a href="{% url 'bio' page=SearchResult.slug %}">Book</a> -->

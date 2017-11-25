@@ -1,11 +1,11 @@
 
 <div class="container">
+	<h1>Review</h1>
 	<div class="row">
 	<!-- Contenedor Principal -->
 	
     <div class="comments-container">
 
-    	<h1>Review</h1>
 		{% if review_list %}
 				<h3>Average: </h3>
 				 <div class="">
@@ -25,7 +25,7 @@
 				<li>
 					<div class="comment-main-level">
 						<!-- Avatar -->
-						<div class="comment-avatar"><img src="{{review.bookingID.studentID.user.myuser.profilePicture.url}}" alt=""></div>
+						<div class="comment-avatar"><img src="/{{review.bookingID.studentID.user.myuser.profilePicture.url}}" alt=""></div>
 						<!-- Contenedor del Comentario -->
 						<div class="comment-box">
 							<div class="comment-head">
