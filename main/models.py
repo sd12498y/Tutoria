@@ -224,7 +224,9 @@ class Wallet(models.Model):
 	objects = WalletManager()
 	def enoughMoney(self, value):
 		print ("enoughMoney()")
-		if (self.balance < value):
+		print value
+		if self.balance < float(value):
+			print False
 			return False
 		else:
 			return True

@@ -61,9 +61,21 @@ def getCommissionRate():
 
 def checkEnough(request):
     if request.method == 'GET':
-        amount = request.GET.get('amount',"")
-        exists = request.user.wallet.enough(amount)
+        if request.GET.get('amount',""):
+            amount = request.GET.get('amount',"")
+            exists = request.user.wallet.enoughMoney(amount)
+        else:
+            exists=True
         return JsonResponse({'exists': exists})
+def checkEnough_admin(request):
+    if request.method == 'GET':
+        if request.GET.get('amount',""):
+            admin = User.objects.get(username="mytutors")
+            amount = request.GET.get('amount',"")
+            exists = request.user.wallet.enoughMoney(amount)
+        else:
+            exists=True
+        return JsonResponse({'exists': exists})   
     
 def checkCouponCode(request):
     if request.method == 'GET':
@@ -292,38 +304,51 @@ class WalletView(generic.ListView):
     def get_queryset(self):
         """Return the last five published questions."""
         return self.request.user.wallet.getHistory()
+    def post(self, request, *args, **kwargs):
+        value=request.POST.get("amount",100)
+        if 'addValue' in request.POST:
+            return redirect('main:addValue', value=value)
+        elif 'withDrawValue' in request.POST:
+            return redirect('main:withDrawValue', value=value)
+        elif 'withDrawValue_admin' in request.POST:
+            print "123"
+            return redirect('main:withDrawValue_admin', value=value)
+        else:
+            print "!23"
+            return redirect('main:addValue_admin', value=value)
+        return HttpResponseRedirect(reverse('main:index'))
 
 
-def addValue(request):
-    request.user.wallet.add(100)
-    value=100
+def addValue(request, value):
+    value = float(value)
+    request.user.wallet.add(value)
     t = Transaction(senderID=request.user, receiverID=request.user, transactionAmount=value, action="Add Value", status=Transaction.TD)
     print "!23"
     t.save()
     return HttpResponseRedirect(reverse('main:wallet'))
 
-def withDrawValue(request):
-    request.user.wallet.minus(100)
-    value=100
+def withDrawValue(request, value):
+    value = float(value)
+    request.user.wallet.minus(value)
     t = Transaction(senderID=request.user, receiverID=request.user, transactionAmount=value, action=Transaction.WL, status=Transaction.TD)
     t.save()
     return HttpResponseRedirect(reverse('main:wallet'))
 
 @staff_member_required    
-def addValue_admin(request):
-    value=100
+def addValue_admin(request, value):
+    value = float(value)
     admin = User.objects.get(username="mytutors")
-    admin.wallet.add(100)
+    admin.wallet.add(value)
     t = Transaction(senderID=request.user, receiverID=admin, transactionAmount=value, action="Add Value", status=Transaction.TD)
     t.save()
     return HttpResponseRedirect(reverse('main:wallet'))
 
 @staff_member_required    
-def withDrawValue(request):
-    value=100
+def withDrawValue_admin(request, value):
+    value = float(value)
     admin = User.objects.get(username="mytutors")
-    admin.wallet.minus(100)
-    t = Transaction(senderID=admin, receiverID=admin, transactionAmount=value, action=Transaction.WL, status=Transaction.TD)
+    admin.wallet.minus(value)
+    t = Transaction(senderID=request.user, receiverID=request.user, transactionAmount=value, action=Transaction.WL, status=Transaction.TD)
     t.save()
     return HttpResponseRedirect(reverse('main:wallet'))
 
