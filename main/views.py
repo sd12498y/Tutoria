@@ -746,6 +746,7 @@ def confirmBooking(request, TutorID):
             print b.id
             bookingResults.bookingID = b
             bookingResults.createTransaction()
+        b.book()
         return HttpResponseRedirect('/booking/%s/' % bookingID)
 
 
@@ -760,8 +761,13 @@ def ConfirmCancel(request, booking_id):
     booking = get_object_or_404(Booking, pk=booking_id)
     booking.status = "Cancelled"
     booking.save()
-    wallet = get_object_or_404(Wallet, user=booking.studentID.user)
-    wallet.refund(booking.totalPayable, booking.tutorID)
+    if (booking.totalPayable != 0):
+        #get transaction
+        t = Transaction.objects.get(bookingID = booking)
+        t.cancel()
+
+    #booking cancel
+    booking.cancel()
 
     # Always return an HttpResponseRedirect after successfully dealing
     # with POST data. This prevents data from being posted twice if a

@@ -228,7 +228,7 @@ class Wallet(models.Model):
 			return False
 		else:
 			return True
-			
+	'''	
 	def refund(self,value,tutor):
 		self.balance += value
 		self.save()
@@ -244,6 +244,7 @@ class Wallet(models.Model):
 	    fail_silently=False,
 		)
 		return
+	'''
 
 	def add(self,value):
 		self.balance += value
@@ -261,7 +262,7 @@ class Wallet(models.Model):
 	def minus(self,value):
 		self.balance -= value
 		self.save()
-		notify.send(self.user, recipient=self.user, verb='$'+str(value)+' has been deducted to your wallet')
+		notify.send(self.user, recipient=self.user, verb='$'+str(value)+' has been deducted from your wallet')
 		send_mail(
 		    '$'+str(value)+' has been deducted to your wallet',
 		    'Hello ' + self.user.username + '. This is to notify you that $'+str(value)+' has recently been deducted to your wallet',
@@ -307,14 +308,15 @@ class Booking(models.Model):
 	def __str__(self):
 		return '%s booked %s' %(self.studentID.user.username, self.tutorID.user.username)
 	def createPayment(self):
+
 		company = User.objects.get(username = "mytutors")
 
 		p = Payment.objects.create_payment(self.studentID.user, company, self.id, self.totalPayable, Payment.TP)
-		payflag = p.makePayment()
-		if (payflag == False):
+		#payflag = p.makePayment()
+		if (p == False):
 			return False
 		else:
-			return payflag
+			return p
 	def CanCancel(self):
 		tz = pytz.timezone('Asia/Hong_Kong')
 		bookingDateTime = datetime.combine(self.sessionDate, self.startTime)
@@ -343,14 +345,43 @@ class Booking(models.Model):
 
 	def cancel(self):
 		self.status = "cancelled"
+		self.timestamp = timezone.localtime(timezone.now())
 		self.save()
-		notify.send(self.tutorID.user, recipient=self.tutorID.user, verb='Booking'+ self.bookingID + 'has been cancelled.' )
-		notify.send(self.studentID.user, recipient=self.studentID.user, verb='Booking'+ self.bookingID + 'has sucessfully been cancelled.' )
+		notify.send(self.tutorID.user, recipient=self.tutorID.user, verb='Booking '+ str(self.id) + 'is made.' )
+		notify.send(self.studentID.user, recipient=self.studentID.user, verb='Booking '+ str(self.id) + 'has sucessfully been cancelled.' )
 		send_mail(
 	    'Booking cancellation',
 	    'Booking has been cancelled.',
 	    'system@solveware.com',
-	    ['test@solveware.com'],
+	    [self.tutorID.user.email],
+	    fail_silently=False,
+		)
+		send_mail(
+	    'Booking cancellation',
+	    'Booking has been cancelled.',
+	    ['system@solveware.com'],
+	    [self.studentID.user.email],	    
+	    fail_silently=False,
+		)
+
+
+	def book(self):
+		self.status = "not yet begun"
+		self.save()
+		notify.send(self.studentID.user, recipient=self.tutorID.user, verb='Booking '+ str(self.id) + 'has been booked.' )
+		notify.send(self.studentID.user, recipient=self.studentID.user, verb='Booking '+ str(self.id) + 'has sucessfully been booked.' )
+		send_mail(
+	    'Booking Creation',
+	    'Booking has been made.',
+	    ['system@solveware.com'],
+	    [self.tutorID.user.email],
+	    fail_silently=False,
+		)
+		send_mail(
+	    'Booking Creation',
+	    'Booking has been made.',
+	    ['system@solveware.com'],
+	    [self.studentID.user.email],	    
 	    fail_silently=False,
 		)
 
@@ -401,7 +432,12 @@ class Transaction(models.Model):
 	def __str__(self):
 		return '%s to %s : %s : %s' %(self.senderID.username, self.receiverID.username, self.action, self.status)
 	def begin(self):
-		self.senderID.wallet.minus(self.transactionAmount)
+
+		company = User.objects.get(username="mytutors")
+		company.wallet.add(self.bookingID.tutoringFee)
+
+
+		self.senderID.wallet.minus(self.transactionAmount)		
 	def complete(self):
 		self.status = Transaction.TD
 		self.save()
@@ -413,6 +449,11 @@ class Transaction(models.Model):
 		self.bookingID.cancel()
 		self.status = Transaction.CN
 		self.save()
+
+		company = User.objects.get(username="mytutors")
+		self.senderID.wallet.add(self.transactionAmount)
+		company.wallet.minus(self.transactionAmount)
+
 
 class CourseCatalogue(models.Model):
 	courseCode = models.CharField(max_length=8, default="") #in format: COMP1234
@@ -489,7 +530,14 @@ class Blackout(models.Model):
 class PaymentManager(models.Manager):
 	def create_payment(self, senderID, receiverID, bookingID, totalPayable, ptype):
 		payment = self.create(senderID=senderID, receiverID=receiverID, bookingID=bookingID, totalPayable=totalPayable, ptype=ptype)
-		return payment
+		
+		target = Wallet.objects.get(user = senderID)
+		if (target.enoughMoney(totalPayable) == True):
+			return payment
+		else:
+			print ("pay returns False")
+			return False
+
 
 class Payment(models.Model):
 	senderID = models.ForeignKey(User, related_name='p_senderID', on_delete=models.CASCADE, default = "")
@@ -517,20 +565,22 @@ class Payment(models.Model):
 	    default=PG,
 		)
 	objects = PaymentManager()
+	'''
 	def makePayment(self):
 		#get mytutor user instance
 		print ("makePayment")
-
-		if (Wallet.objects.pay(self.senderID, self.totalPayable) == True):
-			print ("pay returns True")
-			Wallet.objects.receive(self.receiverID, self.totalPayable)			
-			return self
+		target = Wallet.objects.get(user = userID)
+		if (target.enoughMoney(self.totalPayable) == True):
+			return True
 		else:
 			print ("pay returns False")
 			return False
+	'''
 	def createTransaction(self):
 		t = Transaction.objects.create_transaction(self.senderID, self.receiverID, self.totalPayable, self.bookingID, Transaction.TP)
 		t.save()
+		#call booking to send email
+		
 	def complete(self):
 		self.status = Payment.CD
 		self.save()
