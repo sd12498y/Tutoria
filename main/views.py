@@ -134,6 +134,7 @@ def profile(request):
     course_catalogue = CourseCatalogue.objects.all().distinct()
     #get all tags
     TagList = []
+    TagString = ""
     if (hasattr(request.user.myuser, "tutor")):
         TagList = Tag.objects.filter(tutorID = request.user.myuser.tutor)
         #join string
