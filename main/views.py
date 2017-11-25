@@ -604,14 +604,14 @@ def customIntimetable(request, type):
             #print dtsmoketest
             
             #define those dates that are out of booking range
-            if (eachdate<=TodayDate):
+            if (eachdate<TodayDate):
                 
                 tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
             
             elif (eachdate>TodayDate + timedelta(days=7)):
                 tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
             
-            elif (dtsmoketest <= now and eachdate<=(TodayDate + timedelta(days=1))):
+            elif (dtsmoketest <= now and eachdate<=(TodayDate)):
                 tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
 
             else:
