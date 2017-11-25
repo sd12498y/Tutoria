@@ -115,7 +115,7 @@ class PrivateTutor(Tutor):
 			if (field.name == "hourlyRate"):
 				temp = ("Hourly Rate", "$"+field.value_to_string(self))
 				list.append(temp)
-			elif ((field.name == "user") or (field.name == "tutor_ptr") or (field.name == "user") or (field.name == "id")):
+			elif ((field.name == "user") or (field.name == "tutor_ptr") or (field.name == "user") or (field.name == "id") or (field.name == "isactivated")):
 				temp = ("", "")
 				#list.append(temp)
 			elif (field.name == "university"):
@@ -153,7 +153,7 @@ class ContractTutor(Tutor):
 		temp = ("Tutor Type", "Contracted Tutor")
 		list.append(temp)
 		for field in ContractTutor._meta.fields:
-			if (field.name == "ContractID") or (field.name == "tutor_ptr") or (field.name == "user") or (field.name == "id"):
+			if (field.name == "ContractID") or (field.name == "tutor_ptr") or (field.name == "user") or (field.name == "id") or (field.name == "isactivated"):
 				temp = ("","")
 			elif (field.name == "university"):
 				temp = ("University", field.value_to_string(self))

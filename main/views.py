@@ -35,6 +35,7 @@ from django.db.models import Q
 import pytz
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core import serializers
+from django.db.models import Avg
 
 # Create your views here.
 class passwordResetView(views.PasswordResetView):
@@ -113,11 +114,15 @@ def login(request):
 def manage_sessions(request):
     return render(request,'manageSessions.html')
 
-def bio_review(request, TutorID):
+def bio_review(TutorID):
     #print request.user.myuser.id
-    myuser = myUser.objects.get(id=TutorID)
-    review_list = myuser.tutor.review_set.all().order_by('-timestamp')
-    return render(request,'comment.html', {'review_list': review_list})
+    TargetTutor = Tutor.objects.get(id=TutorID)
+    review_list = TargetTutor.review_set.all().order_by('-timestamp')
+
+    #calculate average
+    reviewAvg = review_list.aggregate(Avg('rate'))
+    return review_list, reviewAvg
+    #return render(request,'comment.html', {'review_list': review_list})
 
 def end_all_sessions(request):
     booking_list = Booking.objects.filter(Q(sessionDate__lte=timezone.localtime(timezone.now()).date()), Q(endTime__lte = timezone.localtime(timezone.now()).time()), ~Q(status="ended"))
@@ -346,6 +351,7 @@ def extimetable(request, TutorID):
     if request.method == "GET":
         context = customTimetable(TutorID, request.user.myuser)        
         template = loader.get_template('extimetable.html')
+
         #context = {'TargetTutor': TargetTutor, 'TodayDate': TodayDate, 'StartDate': StartDate, "EndDate": EndDate, "Dates": Dates, "thisWeekDates": thisWeekDates, "nextWeekDates":nextWeekDates, "Times": Hours, "ListOfSessions": ListOfSessions, 'TutorCourse' : TutorCourse}
         return HttpResponse(template.render(context, request))
     elif request.method == "POST":
@@ -442,11 +448,12 @@ def customIntimetable(request, type):
     return context
 
 def intimetable(request):
-    if (hasattr(request.user.myuser, "student")):
+    if (hasattr(request.user.myuser, "tutor")):
+        return redirect('main:intimetable_tutor')
+    elif (hasattr(request.user.myuser, "student")):
         return redirect('main:intimetable_student')
 
-    elif (hasattr(request.user.myuser, "tutor")):
-        return redirect('main:intimetable_tutor')
+    
     else:
         print "None!!!"
 
@@ -511,6 +518,9 @@ def bio(request, TutorID):
 
         context = customTimetable(TutorID, request.user.myuser)        
         template = loader.get_template('bio2.html')
+        review_list, reviewAvg = bio_review(TutorID)
+        context['review_list'] = review_list
+        context['reviewAvg'] = reviewAvg
         #context = {'TargetTutor': TargetTutor, 'TodayDate': TodayDate, 'StartDate': StartDate, "EndDate": EndDate, "Dates": Dates, "thisWeekDates": thisWeekDates, "nextWeekDates":nextWeekDates, "Times": Hours, "ListOfSessions": ListOfSessions, 'TutorCourse' : TutorCourse}
         return HttpResponse(template.render(context, request))
 
@@ -560,7 +570,12 @@ def customTimetable(TutorID, own):
     for eachdate in Dates:
         
         #get the bookings of the tutor on a particular day
-        DateBookSessionOfTutor = TargetTutor.getTutorBooking(eachdate)
+        
+        if (hasattr(own, "tutor") and hasattr(own, "student")):
+            print "student and tutor"
+            DateBookSessionOfTutor = own.tutor.getTutorBooking(eachdate) | TargetTutor.getTutorBooking(eachdate)
+        else:
+            DateBookSessionOfTutor = TargetTutor.getTutorBooking(eachdate)
 
         #get the blackouts of the tutor on a particular day
         BlackOutTutor = Blackout.objects.getBlackOutTutorDate(TutorID, eachdate)

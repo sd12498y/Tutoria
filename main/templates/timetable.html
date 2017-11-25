@@ -43,18 +43,30 @@ function default_visibility(this_id, next_id){
 </script>
 
 
-    
+<style>
+table.fixed { table-layout:fixed; }
+table.fixed td { overflow: hidden; text-align:center; }
+table.fixed tr { overflow: hidden; text-align:center; }
+
+table.fixed th { overflow: hidden; text-align:center; }
+</style>
+   
 	
 	
 	<!-- Olivia: add form for button -->
-  
-	   <input class="btn" id="nextWeek" type="submit" value="" onclick="toggle_visibility('thisWeekButtonForm', 'nextWeekButtonForm')" />
+   <div class="row row-content" >   
+	   <p>
+      </p>
+      <p align="left">
+     <input class="btn btn-info btn-md" id="nextWeek" type="submit" value="" onclick="toggle_visibility('thisWeekButtonForm', 'nextWeekButtonForm')" />
+    </p>
+  </div>
 
 
      
                              
    
-                              
+     <div class="row">
 	   {% include 'thisweek_timetable.html' %}
      {% block thisweek %}
      {% endblock %}
@@ -62,7 +74,8 @@ function default_visibility(this_id, next_id){
      {% include 'nextweek_timetable.html' %}
      {% block nextweek %}
      {% endblock %}
-   
+   </div>
+   </div>
  
 
      <script>pressed()</script>

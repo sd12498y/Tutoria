@@ -85,7 +85,7 @@ function editBlackOutPressed(editButton){
 }
 
 function saveBlackOutPressed(saveButton){
-  alert ("save")
+  
   var fp = document.getElementsByClassName("freePress");
 
   var NewBlackOutList = "";
@@ -100,7 +100,7 @@ function saveBlackOutPressed(saveButton){
       }
 
   }
-  alert("NewBlackOutList:"+NewBlackOutList);
+  
   document.getElementById('HiddenNew').value = NewBlackOutList;
 
   var bop = document.getElementsByClassName("BlackOutPress");
@@ -115,7 +115,7 @@ function saveBlackOutPressed(saveButton){
           RemoveBlackOutList = RemoveBlackOutList.concat(String(checkboxid));
       }
   }
-  alert("RemoveBlackOutList:"+RemoveBlackOutList);
+  
   document.getElementById('HiddenRemove').value = RemoveBlackOutList;
   
   

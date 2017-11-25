@@ -1,36 +1,49 @@
-{% extends 'base.html' %}
-{% block content %}
 
 <div class="container">
 	<div class="row">
 	<!-- Contenedor Principal -->
+	
     <div class="comments-container">
-		<h1>Review</h1>
+
+    	<h1>Review</h1>
+		{% if review_list %}
+				<h3>Average: </h3>
+				 <div class="">
+					<input id="star_rating" name="star_rating" class="rb-rating" data-stars="5" data-step="0.5" data-size="xs" required="" disabled="" value="{{reviewAvg}}"/>
+					
+				</div>
+			{% endif%}
+		
+
+		
 
 		<ul id="comments-list" class="comments-list">
 			 {% if review_list %}
+
 			    
-			  {% for review in review_list %}
-			<li>
-				<div class="comment-main-level">
-					<!-- Avatar -->
-					<div class="comment-avatar"><img src="{{review.bookingID.studentID.user.myuser.profilePicture.url}}" alt=""></div>
-					<!-- Contenedor del Comentario -->
-					<div class="comment-box">
-						<div class="comment-head">
-							<h6 class="comment-name">{{review.bookingID.studentID.user.username}}</h6>
-							<span>commented on {{review.timestamp}}</span>
-							<i class="fa fa-reply"></i>
-							<i class="fa fa-heart"></i>
-						</div>
-						<div class="comment-content">
-							<input id="star_rating" name="star_rating" class="rb-rating" data-stars="5" data-step="0.5" data-size="xs" required="" disabled="" value="{{review.rate}}"/>
-							<h4> {{review.description}} </h4>
+				{% for review in review_list %}
+				<li>
+					<div class="comment-main-level">
+						<!-- Avatar -->
+						<div class="comment-avatar"><img src="{{review.bookingID.studentID.user.myuser.profilePicture.url}}" alt=""></div>
+						<!-- Contenedor del Comentario -->
+						<div class="comment-box">
+							<div class="comment-head">
+								<h6 class="comment-name">{{review.bookingID.studentID.user.username}}</h6>
+								<span>commented on {{review.timestamp}}</span>
+								<i class="fa fa-reply"></i>
+								<i class="fa fa-heart"></i>
+							</div>
+							<div class="comment-content">
+								<input id="star_rating" name="star_rating" class="rb-rating" data-stars="5" data-step="0.5" data-size="xs" required="" disabled="" value="{{review.rate}}"/>
+								<h4> {{review.description}} </h4>
+							</div>
 						</div>
 					</div>
-				</div>
-			</li>
-			{% endfor %}
+				</li>
+				{% endfor %}
+			{% else %}
+				<p><small id="" class="text-muted"><i>This tutor does not have any reviews yet.</i></small></p>
 			{% endif %}
 		</ul>
 	</div>
@@ -44,4 +57,5 @@
             });
         });
 </script>
-{% endblock %}
+{% block comment %}
+     {% endblock %}
