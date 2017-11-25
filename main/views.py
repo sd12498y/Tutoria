@@ -378,7 +378,7 @@ class BookingHistoryView(generic.ListView):
         return Booking.objects.filter(Q(studentID=self.request.user.myuser) | Q(tutorID=self.request.user.myuser) ).order_by('-timestamp')[:7]
 
 
-def search(request):
+def search1(request):
     template = loader.get_template('search.html')
     context={}
     '''if request.method=="POST":
@@ -544,6 +544,7 @@ class SearchResultView(generic.ListView):
                         Clist.append(oneTutor)
                 #print Clist
                 result_list = list(chain(Plist, Clist))
+            return result_list
 
 
 def extimetable(request, TutorID):
