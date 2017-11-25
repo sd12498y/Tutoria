@@ -39,6 +39,28 @@
 		}
 
 	}
+
+  function validateHourlyRate(){
+    var hourlyRate = document.getElementById("hourly").value;
+    var hourlyRateDiv = document.getElementById("hourly");
+    if (hourlyRate%10 == 0){
+
+      hourlyRateDiv.classList.remove("is-invalid");
+      hourlyRateDiv.classList.add("is-valid");
+      return true;
+      //valid
+    }
+    else{
+      //invalid
+
+      hourlyRateDiv.classList.add("is-invalid");
+      hourlyRateDiv.classList.remove("is-valid");
+      return false;
+    }
+
+
+  }
+
 </script>
 <div class="container">
     <div class="user row row-content">
@@ -141,9 +163,19 @@
       {% if type == 'Private Tutor' %}
       <div class="form-row">
   	      <div class="form-group col-md-12">
-  			<label for="hourly">Hourly rate:</label>
-    		<input type="text" name="hourly_rate" class="form-control" id="hourly" value="{{ request.user.myuser.tutor.privatetutor.hourlyRate }}" readonly="">
-  		</div>
+      			<label for="hourly">Hourly rate:</label>
+        		<input type="text" name="hourly_rate" class="form-control" id="hourly" value="{{ request.user.myuser.tutor.privatetutor.hourlyRate }}" readonly="" onkeyup="validateHourlyRate()">
+      		  <small id="passwordHelpBlock" class="form-text text-muted">
+            
+              <i>
+                <ul>
+                  <li>Your hourly rate must be a multiple of 10.</li>
+                  
+                </ul>
+              </i>
+            </small>
+          </div>
+
       </div>
       {% endif %}
       <div class="form-row tutor-course">

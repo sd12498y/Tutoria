@@ -27,6 +27,7 @@
 	</head>
 	<body>
 		<nav class="navbar navbar-light navbar-fixed-top" role="navigation"> 
+
 			<div class="container">
 				<div class="navbar-header">
                 	<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -39,7 +40,7 @@
 			</div>
 	  			<div id="navbar" class="navbar-collapse collapse">
 					 <ul class="nav navbar-nav">
-						<li class="actve"><a href="{% url 'main:search' %}" class="nav-user-text">Home</a></li>
+						<li class="actve"><a href="{% url 'main:searchpage' %}" class="nav-user-text">Home</a></li>
 						<li><a href="{% url 'main:intimetable' %}" class="nav-user-text">Timetable</a></li>
 						<li><a href="#" class="nav-user-text">Message</a></li>
 					</ul>
@@ -69,7 +70,7 @@
 				</div>
 			</div>
 		</nav>
-				
+
 
 	            {% block content %}
 	            {% endblock %}
