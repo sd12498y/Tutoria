@@ -48,7 +48,7 @@ function default_visibility(this_id, next_id){
 	
 	<!-- Olivia: add form for button -->
   
-	   <input id="nextWeek" type="submit" value="" onclick="toggle_visibility('thisWeekButtonForm', 'nextWeekButtonForm')" />
+	   <input class="btn" id="nextWeek" type="submit" value="" onclick="toggle_visibility('thisWeekButtonForm', 'nextWeekButtonForm')" />
 
 
      
@@ -62,6 +62,7 @@ function default_visibility(this_id, next_id){
      {% include 'nextweek_timetable.html' %}
      {% block nextweek %}
      {% endblock %}
+   
  
 
      <script>pressed()</script>

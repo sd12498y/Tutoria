@@ -1,0 +1,15 @@
+
+    <div class="row">
+        <div class="col-xs-12 col-md-8">
+            
+            <h3>Student:</h3>
+            <p>Student Username: {{booking.studentID.user.username}}</p>
+            <p>Student Phone Number: {{booking.studentID.user.myuser.tel}}</p>
+            <p>Total Payment:</p>
+            <p>{{booking.tutoringFee}} + {{booking.commission}} =${{booking.totalPayable}}</p>
+        </div>
+    	
+    </div>
+
+  {% block bd_tutor %}
+  {% endblock %}

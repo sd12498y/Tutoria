@@ -10,22 +10,21 @@
             <p>Start Time: {{booking.startTime}}</p>
             <p>End Time: {{booking.endTime}}</p>
             <br>
-            <h3>Tutor:</h3>
-            <p>Tutor Username: {{booking.tutorID.user.username}}</p>
-            <p>Student Username: {{booking.studentID.user.username}}</p>
-            <p>Total Payment:</p>
-            <p>{{booking.tutoringFee}}+{{booking.commission}}={{booking.totalPayable}}</p>
-    </div>
-    	{% if booking.status|lower != "cancelled"  and booking.studentID == request.user.myuser %}
-          <div class="col-xs-12 col-md-4">
-  				<h5><a href="{% url 'main:cancel' booking.id %}" class="btn btn-danger" role="button">Cancel</a></h5>
-          </div>
-         {% endif %}
-        {% if booking.isReview and booking.studentID == request.user.myuser %}
-          <div class="col-xs-12 col-md-4">
-                <h5><a href="{% url 'main:cancel' booking.id %}" class="btn btn-info" role="button">Review</a></h5>
-          </div>
-         {% endif %}
+        </div>
+            
+            {% if interfaceType == "Tutor" %}
+
+                {% include 'booking_details_tutorView.html' %}
+                {% block bd_tutor %}
+                {% endblock %}
+            {% else %}
+                {% include 'booking_details_studentView.html' %}
+                {% block bd_student %}
+                {% endblock %}
+            {% endif %}
+
+
+        
 
 	</div>
 </div>
