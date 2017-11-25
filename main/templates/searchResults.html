@@ -14,24 +14,20 @@
         <div class="col-xs-12 col-md-9">
             <div class="media">
                 <div class="media-left">
-                    <img class="media-object pull-left" style="width:90px;    padding-right: 10px;" src="{{Tutor.user.profilePicture.url}}"/>
+                    <img class="media-object pull-left" style="width:90px;padding-right: 10px;" src="/{{Tutor.user.profilePicture.url}}"/>
                 </div>
                 <div class="media-body">
                     <h2 class="media-heading">
                     Tutor Name: {{Tutor.user.user.first_name}}</h2>
                     <p>University: {{Tutor.university}}
-<<<<<<< HEAD
-                    </br>Hourly rate:{{Tutor.hourlyRate}}</p>
-=======
                     </br>Hourly rate: {{Tutor.hourlyRate}}
                     <br>Subject tag: <!--{{Tutor.tag.tag}}-->
-                    {% for course in Tutor.course_set %}
+                    {% for course in Tutor.course_set.all %}
                             <span class="label label-warning">{{course.courseCode}}</span>
                     {% endfor %}
 
                   <!--</br>Average review:{{Tutor.}}-->
                   </p>
->>>>>>> origin/janice
                 </div>
             </div>
         </div>

@@ -1,46 +1,34 @@
 {% extends 'base.html' %}
 
-<!--<script type="text/javascript">
-
-/*function toggle_visibility(){
-  /*var this_fN = document.getElementById('firstName');
-  var this_lN = document.getElementById('lastName');
-  var this_sch = document.getElementById(school);
-  var this_cC = document.getElementById(course);
-  var this_tg = document.getElementById(tag);
-  var this_hRL = document.getElementById(hourlyRateL);
-  var this_hRU = document.getElementById(hourlyRateU);
-  var this_P = document.getElementById(privatetutor);
-  var this_C = document.getElementById(contracttutor);
-
-  document.getElementById('firstName').setAttribute("disabled");
-  //this_fN.style.display = 'none';
-  this_fN.disabled = false;
-  //this_fN.prop('disabled', true);
-  this_lN.style.display = 'none';
-  this_sch.style.display = 'none';
-  this_cC.style.display = 'none';
-  this_tg.style.display = 'none';
-  this_hRL.style.display = 'none';
-  this_hRU.style.display = 'none';
-  this_P.style.display = 'none';
-  this_C.style.display = 'none';
-}
-/*$(function(){
-  $("#showPrefSeven").change(function(){
-    $("#firstName").prop('disabled', true);
-  });
-});*/
-
-/*document.getElementById('showPrefSeven').onchange = function() {
-    document.getElementById('firstName').enable = !this.checked;
-};*/
-
-
-
-</script>-->
-
 {% block content %}
+<script type="text/javascript">
+function toggleSearch(){
+    var showPrefAll = document.getElementById("showPrefAll").checked;
+    var showPrefSeven = document.getElementById("showPrefSeven").checked;
+    console.log(showPrefAll);
+    console.log(showPrefSeven);
+    if (showPrefAll==true){
+      console.log("haha");
+      var list = document.getElementsByClassName('dump');
+      for (var i = 0; i < list.length; ++i) {
+          var item = list[i];  
+          item.removeAttribute("readonly","");
+          item.removeAttribute("disabled","");
+      }
+    }
+    
+    if (showPrefSeven ==true){
+      console.log("haha");
+      var list = document.getElementsByClassName('dump');
+      for (var i = 0; i < list.length; ++i) {
+          var item = list[i];  
+          item.setAttribute("readonly","");
+          item.setAttribute("disabled","");
+      }
+    }
+}
+
+</script>
 <div class="wrapper">
   <form action="Result/" method="GET">
     {% csrf_token %}
@@ -51,14 +39,14 @@
       <div class="col-xs-4 col-xs-offset-2">
         <div class="form-check form-check-inline">
           <label class="form-check-label">
-            <input class="form-check-input" type="radio" name="showPref" id="showPrefAll" value="All" required> Show all tutors who satisfy the criteria
+            <input class="form-check-input" type="radio" name="showPref" id="showPrefAll" value="All" required checked="" onclick="toggleSearch()"> Show all tutors who satisfy the criteria
           </label>
         </div>
       </div>
       <div>
         <div class="form-check form-check-inline">
           <label class="form-check-label">
-            <input class="form-check-input" type="radio" name="showPref" id="showPrefSeven" value="Seven" required> Only tutors with at least one available timeslot in the next 7 days
+            <input class="form-check-input" type="radio" name="showPref" id="showPrefSeven" value="Seven" required onclick="toggleSearch()"> Only tutors with at least one available timeslot in the next 7 days
           </label>
         </div>
       </div>
@@ -68,19 +56,19 @@
     <div class="form-inline" align="center">
       <div class="form-group col">
         <label for="firstName">First Name</label>
-        <input class="form-control" type="text" name="firstName" id="firstName" placeholder="First name">
+        <input class="form-control dump" type="text" name="firstName" id="firstName" placeholder="First name">
       </div>
       <div class="form-group col">
         <label for="lastName">Last Name</label>
-        <input class="form-control" type="text" name="lastName" id="lastName" placeholder="Last name">
+        <input class="form-control dump" type="text" name="lastName" id="lastName" placeholder="Last name">
       </div>
       <div class="form-group col">
         <label for="school">School</label>
-        <input class="form-control" type="text" name="school" id="school" placeholder="School">
+        <input class="form-control dump" type="text" name="school" id="school" placeholder="School">
       </div>
       <div class="form-group col">
         <label for="courseCode">Course Code</label>
-        <input class="form-control" type="text" name="courseCode" id="course" placeholder="Course code">
+        <input class="form-control dump" type="text" name="courseCode" id="course" placeholder="Course code">
       </div>
     </div>
 
@@ -90,14 +78,14 @@
       <div class="form-inline" align="center">
         <div class="form-group col">
           <label for="tag">Tag</label>
-          <input class="form-control" type="text" name="tag" id="tag" placeholder="Tag">
+          <input class="form-control dump" type="text" name="tag" id="tag" placeholder="Tag">
         </div>
         <div class="form-group col">
           <label for="hourlyRate">Hourly Rate</label>
-          <input class="form-control" type="number" step="any" name="hourlyRateL" id="hourlyRateL" placeholder="Lowest rate">
+          <input class="form-control dump" type="number" step="any" name="hourlyRateL" id="hourlyRateL" placeholder="Lowest rate">
         </div>
         <div class="form-group col">
-          <input class="form-control" type="number" step="any" name="hourlyRateU" id="hourlyRateU" placeholder="Highest rate">
+          <input class="form-control dump" type="number" step="any" name="hourlyRateU" id="hourlyRateU" placeholder="Highest rate">
         </div>
       </div>
     </div>
@@ -108,14 +96,14 @@
       <div class="col-xs-2 col-xs-offset-4">
         <div class="form-check form-check-inline">
           <label class="form-check-label">
-            <input class="form-check-input" type="radio" name="type" id="private" value="Private Tutor"> Private
+            <input class="form-check-input dump" type="checkBox" name="type" id="private" value="private" checked=""> Private
           </label>
         </div>
       </div>
       <div class="col-xs-2">
         <div class="form-check form-check-inline">
           <label class="form-check-label">
-            <input class="form-check-input" type="radio" name="type" id="contract" value="Contracted Tutor"> Contract
+            <input class="form-check-input dump" type="checkBox" name="type" id="contract" value="contract"> Contract
           </label>
         </div>
       </div>
@@ -126,7 +114,7 @@
     <div class="form-row" align="center">
       <div class="form-group col-md-2 col-xs-offset-5">
         <label for="sort">Sort by:</label>
-        <select class="form-control" name="sort" id="sort">
+        <select class="form-control dump" name="sort" id="sort">
           <option>Hourly Rate</option>
           <option>Average review scores</option>
         </select>

@@ -366,14 +366,18 @@ class SearchResultView(generic.ListView):
             #print i.user.user.username
         user = self.request.user
         username = user.username
+        for tutor in Presult:
+            print tutor.user.user.username
         #print username
         #print "haha"
         fN = self.request.GET.get("firstName", False)
+        print fN
         lN = self.request.GET.get("lastName", False)
+        print lN
         sch = self.request.GET.get("school", False)
         cC = self.request.GET.get("courseCode", False)
         tg = self.request.GET.get("tag", False)
-        typ = self.request.GET.get("type", False)
+        typ = self.request.GET.getlist("type", False)
         #hR = self.request.GET.get("hourlyRate", 0)
         if self.request.GET.get("hourlyRateL"):
             hRL = self.request.GET.get("hourlyRateL")
@@ -402,23 +406,33 @@ class SearchResultView(generic.ListView):
         Clist = []
 
         if showPref == "All":
-            if typ == "Private Tutor":
-                Presult = Presult.exclude(user__user__username=username)
-                #!!!isactivated=False
-                #print Presult
-                Presult = Presult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg,hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()
+            if 'private' in typ and not 'contract' in typ:
+                Result = PrivateTutor.objects.all()
+            elif 'contract' in typ and not 'private' in typ:
+                Result = ContractTutor.objects.all()
+            else:
+                Result = Tutor.objects.all()
 
-
-
-                #Ptag = Ptag.filter(tutorID=Presult.) #tutorid
-
-                result_list = Presult
+            Result = Result.exclude(user__user__username=username)
+            if not fN == "":
+                print "123"
+                Result = Result.filter(Q(user__user__first_name__iexact=fN))
+            if not lN == "":
+                Result = Result.filter(Q(user__user__last_name__iexact=lN))
+            if not sch == "":
+                Result = Result.filter(Q(university__iexact=sch)) 
+            if not cC == "":
+                Result = Result.filter(Q(course__courseCode__courseCode__iexact=cC)) 
+            if not tg == "":
+                Result = Result.filter(Q(tag__tag__iexact=tg))
+            Result = Result.filter(Q(hourlyRate__range=(hRL,hRU)))
+            result_list = Result.order_by('-hourlyRate').distinct()   
 
             if typ == "Contracted Tutor":
                 Cresult = Cresult.exclude(user__user__username=username)
                 #!!!isactivated=False
 
-                Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()
+                Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,isactivated=True,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()
 
                 result_list = Cresult
 
@@ -426,12 +440,12 @@ class SearchResultView(generic.ListView):
                 Presult = Presult.exclude(user__user__username=username)
                 #!!!isactivated=False
 
-                Presult = Presult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg,hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()
+                Presult = Presult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,isactivated=True,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg,hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()
 
                 Cresult = Cresult.exclude(user__user__username=username)
                 #!!!isactivated=False
 
-                Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()
+                Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,isactivated=True,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()
                 #Presult = Presult.order_by('-hourlyRate').distinct()
 
                 #Cresult = Cresult.distinct()
@@ -447,17 +461,25 @@ class SearchResultView(generic.ListView):
             #listofPTutor = PrivateTutor.objects.all()
             #listofCTutor = ContractTutor.objects.all()
             listofBookedtutor = Booking.objects.all()
+            print listofBookedtutor
+            listofBookedtutor =  listofBookedtutor.exclude(tutorID__user__username=username)
+            print listofBookedtutor
             listofBlackout = Blackout.objects.all()
+            print listofBlackout
+            listofBlackout = listofBlackout.exclude(tutorID__user__user__username=username)
+            print listofBlackout
 
             #Booking.objects.values("id").annotate(Count("id"))
             #Blackout.objects.values("id").annotate(Count("id"))
-            Presult = Presult.exclude(user__user__username=username).order_by('-hourlyRate').distinct()
+            Presult = Presult.exclude(user__user__username=username)
+            Presult = Presult.filter(isactivated=True).order_by('-hourlyRate').distinct()
                 #!!!isactivated=False
 
             #Presult = Presult.order_by('-hourlyRate').distinct()
             for oneTutor in Presult:
                 count = 0
                 for oneBooking in listofBookedtutor:
+                    print oneBooking.tutorID.tutor.isactivated
                     if oneBooking.tutorID == oneTutor.id: #not sure oneTutor.id is the id for tutor?
                         count = count + 1
                 for oneBlackout in listofBlackout:
@@ -468,7 +490,8 @@ class SearchResultView(generic.ListView):
             #print Plist
             #result_list = Plist
 
-            Cresult = Cresult.exclude(user__user__username=username).distinct()
+            Cresult = Cresult.exclude(user__user__username=username)
+            Cresult = Cresult.filter(isactivated=True).order_by('-hourlyRate').distinct().distinct()
                 #!!!isactivated=False
 
             #Cresult = Cresult.distinct()
