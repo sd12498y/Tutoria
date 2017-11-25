@@ -332,8 +332,8 @@ class Booking(models.Model):
 	def end(self):
 		self.status = "ended"
 		self.save()
-		p = Payment.objects.get(bookingID=self.id)
-		p.complete()
+		t = Transaction.objects.get(bookingID=self.bookingID)
+		t.complete()
 		send_mail(
 	    'Review Invitation',
 	    'Hello '+self.studentID.user.username+'. How is your experience in the tutorial session with ' + self.tutorID.user.username + ' ? Submit a review to rate your experience following this link: http://localhost:8000/'+self.id+'/review/',
