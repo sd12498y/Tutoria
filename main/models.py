@@ -17,6 +17,8 @@ from django.http import JsonResponse
 import time
 from datetime import datetime, date, time, timedelta
 
+import pytz
+
 
 class myUserManager(models.Manager):
 	def create_myUser(self, user, tel, *profilePicture):
@@ -32,14 +34,12 @@ class myUser(models.Model):
 
 	def __str__(self):
 		return '%s' % (self.user.username)
+	
 
 class StudentManager(models.Manager):
 	def create_student(self, user, university):
 		student = self.create(user=user, university=university)
 		return student
-	def getRelatedBooking(self, sessionDate):
-		relatedBooking = Booking.objects.filter(Q(status="not yet begun") | Q(status="locked")| Q(status="completed"), sessionDate = sessionDate)
-		return relatedBooking
 
 class Student (models.Model):
 	user = models.OneToOneField(myUser, on_delete=models.CASCADE)
@@ -54,9 +54,7 @@ class TutorManager(models.Manager):
 	def create_tutor(self, user, university, description):
 		tutor = self.create(user=user, university=university, description=description)
 		return tutor
-	def getRelatedBooking(self, sessionDate):
-		relatedBooking = Booking.objects.filter(Q(status="not yet begun") | Q(status="locked")| Q(status="completed"), tutorID = self.user, sessionDate = sessionDate)
-		return relatedBooking
+	
 
 
 class Tutor(models.Model):
@@ -70,6 +68,13 @@ class Tutor(models.Model):
 
 	def __str__(self):
 		return '%s' % (self.user.user.username)
+	def getSameStudentBooking(self, startDate, endDate, studentID):
+		return Booking.objects.filter(Q(status="not yet begun") | Q(status="locked"), tutorID = self.user, sessionDate__gte = startDate, sessionDate__lte = endDate, studentID = studentID)
+	def getTutorBooking(self, sessionDate):
+		return Booking.objects.filter(Q(status="not yet begun") | Q(status="locked"), tutorID = self.user, sessionDate = sessionDate)
+
+
+
 class PrivateTutor(Tutor):
 	hourlyRate = models.FloatField(default=0, null=True)
 	def extimetable_get_fields(self):
@@ -253,6 +258,10 @@ class Wallet(models.Model):
 		return t_set
 
 
+class BookingManager(models.Manager):
+	def getRelatedBooking(self, own, sessionDate):
+		relatedBooking = Booking.objects.filter(Q(status="not yet begun") | Q(status="locked")| Q(status="completed"), Q(tutorID = own) | Q(studentID = own), sessionDate = sessionDate)
+		return relatedBooking
 
 class Booking(models.Model):
 	studentID = models.ForeignKey(myUser, related_name='b_student', on_delete=models.CASCADE)
@@ -266,6 +275,7 @@ class Booking(models.Model):
 	commission = models.FloatField(default=0, null=True)
 	#status = "not yet begun","locked", "end", "cancelled"
 	status = models.CharField(max_length=20)
+	objects = BookingManager()
 
 	def __str__(self):
 		return '%s booked %s' %(self.studentID.user.username, self.tutorID.user.username)
@@ -278,6 +288,17 @@ class Booking(models.Model):
 			return False
 		else:
 			return payflag
+	def CanCancel(self):
+		tz = pytz.timezone('Asia/Hong_Kong')
+		bookingDateTime = datetime.combine(self.sessionDate, self.startTime)
+		dkbookingDateTime = tz.localize(bookingDateTime, is_dst=True)
+		if ((self.status == "not yet begun") and (dkbookingDateTime > timezone.localtime(timezone.now())+timedelta(hours=24))):
+			print "can cancel"
+			return True
+		else:
+			print "cannot cancel"
+			return False
+		
 
 
 class TransactionManager(models.Manager):
@@ -320,12 +341,19 @@ class CourseCatalogue(models.Model):
 	def getCourseName(self):
 		return '%s' %(self.courseName)
 
+class CourseManager(models.Manager):
+	def getCourse(self, tutorID):
+		return Course.objects.filter(tutorID = tutorID)
+
 
 class Course(models.Model):
 	tutorID = models.ForeignKey(Tutor, on_delete=models.CASCADE)
 	courseCode = models.ForeignKey(CourseCatalogue, related_name='CC_CourseCode', on_delete=models.CASCADE, default = "")
+	objects = CourseManager()
 	def getCode(self):
 		return self.course.courseCode
+	
+
 
 
 class Tag(models.Model):
@@ -357,6 +385,12 @@ class BlackoutManager(models.Manager):
 	def create_blackout(self, tutorID, date, startTime, endTime):
 		blackout = self.create(tutorID=tutorID, date=date, startTime=startTime, endTime=endTime)
 		return blackout
+	def getBlackOutTutorDate(self, tutorID, Date):
+		return Blackout.objects.filter(tutorID = tutorID, date = Date)
+	def getBlackOutTutorDateTime(self, tutorID, Date, startTime):
+		result = Blackout.objects.filter(tutorID = tutorID, date = Date, startTime = startTime)
+		return result
+
 
 class Blackout(models.Model):
 	tutorID = models.ForeignKey(Tutor, on_delete=models.CASCADE)

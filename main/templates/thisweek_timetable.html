@@ -75,7 +75,7 @@
                              
                             {%elif eachsession.Status == "Booked"%}
                               
-                              <input class="btn Booked BookedPress" id="{{ eachsession.Buttonid }}" type="button" value="            " style="width:100%; "/>
+                              <input class="btn Booked BookedPress" id="{{ eachsession.Buttonid }}" type="button" value="            " onclick="reply_click(this.id)" style="width:100%; "/>
                             {%elif eachsession.Status == "SameDay"%}
                               
                               <input class="btn SameDay SameDayPress" id="{{ eachsession.Buttonid }}" type="button" value="            " style="width:100%; "/>

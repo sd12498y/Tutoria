@@ -1,0 +1,20 @@
+{% if booking.CanCancel %}
+      <div class="col-xs-12 col-md-4">
+                <h5><a href="{% url 'main:cancel' booking.id %}" class="btn btn-danger" role="button">Cancel Booking</a></h5>
+      </div>
+     {% endif %}
+<div class="row">
+    <div class="col-xs-12 col-md-8">
+        
+        <h3>Tutor:</h3>
+            <p>Tutor Username: {{booking.tutorID.user.username}}</p>
+            <p>Tutor Phone Number: {{booking.tutorID.user.myuser.tel}}</p>
+            <p>Total Payment:</p>
+            <p>{{booking.tutoringFee}} + {{booking.commission}}=${{booking.totalPayable}}</p>
+    </div>
+	
+</div>
+
+  {% block bd_student %}
+  {% endblock %}
+

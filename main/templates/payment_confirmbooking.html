@@ -4,7 +4,7 @@
 var VList;
 //var VList = JSON.parse({{ json_ValidCouponList|safe }});
 
-function is_CouponValid(com)
+function is_CouponValid(com, totalP)
 {
     
    
@@ -23,6 +23,9 @@ function is_CouponValid(com)
           document.getElementById('InCoupon').style.backgroundColor = "green";
           document.getElementById("couponDiscount").innerHTML = "Discount: -$" + com;
           document.getElementById("couponDiscount").style.color = "green";
+            var newTotal;
+            newTotal = totalP - com;
+          document.getElementById("totalPayable").value = "Total: $" + newTotal;
         return true;
         }else{
             console.log("coupon is not valid");
@@ -33,6 +36,7 @@ function is_CouponValid(com)
             document.getElementById('InCoupon').style.backgroundColor = "red";
 
           document.getElementById("couponDiscount").innerHTML = "";
+          document.getElementById("totalPayable").value = "Total: $" + totalP;
             return false;
         }
     
@@ -63,23 +67,29 @@ function is_CouponValid(com)
 </script>
 
 <div class="row">
-
-        <h2>Checkout</h2>
-        <p>Tutoring Fee: ${{b.tutoringFee}}</p>
-        <p>Commission: ${{b.commission}}</p>
-        <div class="" id="couponDiscount">
-        </div>
-        <p>Total: ${{b.totalPayable}}</p>
-
+    <table frame="box">
+        <tr><td><h2>Checkout</h2></td></tr>
+        <tr><td><p>Tutoring Fee: ${{b.tutoringFee}}</p></td></tr>
+        <tr><td><p>Commission: ${{b.commission}}</p></td></tr>
+        <tr><td><div class="" id="couponDiscount">
+        </div></td></tr>
+        <tr><td><input type="text" readonly="true" name="totalPayable" id="totalPayable" value="Total: ${{b.totalPayable}}" /></td></tr>
         
-        <form id="couponForm" name="couponForm">
-            Coupon Code: 
-                <input type="text" name="InCoupon" id="InCoupon" value=""/>
-                <input class="btn active" type="button" name="couponSubmit" value = "Validate" onclick="is_CouponValid({{b.commission}})"/>
-                
-                <div class="" id="couponFeedback">
-                </div>
-        </form>
+
+
+        <tr>
+            <td>
+                <form id="couponForm" name="couponForm">
+                    Coupon Code: 
+                        <input type="text" name="InCoupon" id="InCoupon" value=""/>
+                        <input class="btn active" type="button" name="couponSubmit" value = "Validate" onclick="is_CouponValid({{b.commission}}, {{b.totalPayable}})"/>
+                        
+                        <div class="" id="couponFeedback">
+                        </div>
+                </form>
+            </td>
+        </tr>
+    </table>
         
 
 </div>

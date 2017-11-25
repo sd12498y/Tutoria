@@ -1,0 +1,58 @@
+
+
+<script type="text/javascript">
+var global_buttonid;
+var status;
+
+var coursename;
+
+var firstload = 1;
+
+var settimetable = 0;
+
+
+
+function reply_click(clicked_id)
+{
+    alert("reply_click")
+    global_buttonid = clicked_id;
+    //document.getElementById("buttonid").innerHTML=global_buttonid;
+    //var html = '<input type="hidden" name="buttonid">';
+
+    //alert(document.getElementById('eachbutton').value);
+    document.getElementById('eachbutton').value = global_buttonid;
+    //alert(document.getElementById('eachbutton').value);
+
+    document.getElementById('thisWeekButtonForm').submit();
+    //document.ButtonForm.buttonid.value = global_buttonid;
+}
+
+
+</script>
+    
+
+
+    
+    
+
+    <h1 id="bio">Your Timetable<h1>
+
+    <!-- assume tutor first -->
+
+    
+
+                             
+     {% include 'timetable.html' %}
+     {% block timetable %}
+     {% endblock %}
+
+
+{% block intimetable %}
+{% endblock %}
+     
+
+
+
+
+
+

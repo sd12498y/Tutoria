@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<script type="text/javascript">
+var global_buttonid;
+var status;
+
+var coursename;
+
+var firstload = 1;
+
+var settimetable = 0;
+
+
+
+function reply_click(clicked_id)
+{
+    alert("reply_click")
+    global_buttonid = clicked_id;
+    //document.getElementById("buttonid").innerHTML=global_buttonid;
+    //var html = '<input type="hidden" name="buttonid">';
+
+    //alert(document.getElementById('eachbutton').value);
+    document.getElementById('eachbutton').value = global_buttonid;
+    //alert(document.getElementById('eachbutton').value);
+
+    document.getElementById('thisWeekButtonForm').submit();
+    //document.ButtonForm.buttonid.value = global_buttonid;
+}
+
+function pressed(){
+  
+  
+  var i;
+  
+  var fp = document.getElementsByClassName("freePress");
+  for (i = 0; i < fp.length; i++) {
+      fp[i].disabled = true;
+      fp[i].style.backgroundColor= "#fff8e1";
+
+
+  }
+
+  var bp = document.getElementsByClassName("BookedPress");
+  
+  for (i = 0; i < bp.length; i++) {
+      bp[i].disabled = false;
+      bp[i].value = "BookingID: " + bp[i].id
+      bp[i].style.backgroundColor= "#1c2a48";
+      bp[i].style.color = "#FFFFFF";
+      
+  }
+  
+  var oobp = document.getElementsByClassName("OOBPress");
+  
+  for (i = 0; i < oobp.length; i++) {
+      oobp[i].disabled = true;
+      oobp[i].style.backgroundColor= "#000000";
+      
+  }
+  var bop = document.getElementsByClassName("BlackOutPress");
+  
+  for (i = 0; i < bop.length; i++) {
+      bop[i].disabled = true;
+      bop[i].style.backgroundColor=  "#808080";
+      
+  }
+  document.getElementById('SaveBlackOut').style.visibility = 'hidden';
+}
+
+function editBlackOutPressed(editButton){
+  var fp = document.getElementsByClassName("freePress");
+  var editButtonObj = document.getElementById(editButton);
+  editButtonObj.style.visibility = 'hidden';
+  document.getElementById('SaveBlackOut').style.visibility = 'visible';
+
+  for (i = 0; i < fp.length; i++) {
+      fp[i].disabled = false;
+      fp[i].type = "checkbox"
+      fp[i].onclick = ""
+      //fp[i].style.backgroundColor= "#fff8e1";
+
+  }
+  var bop = document.getElementsByClassName("BlackOutPress");
+  
+  for (i = 0; i < bop.length; i++) {
+      bop[i].disabled = false;
+      bop[i].type = "checkbox"
+      bop[i].checked = true;
+      bop[i].style.backgroundColor=  "#808080";
+      
+  }
+
+
+  var bp = document.getElementsByClassName("BookedPress");
+  
+  for (i = 0; i < bp.length; i++) {
+      bp[i].disabled = true;
+  }
+  return
+
+}
+
+function saveBlackOutPressed(saveButton){
+  alert ("save")
+  var fp = document.getElementsByClassName("freePress");
+
+  var NewBlackOutList = "";
+  var checkboxid;
+  var i;
+  for (i = 0; i < fp.length; i++) {
+      if(fp[i].checked){
+        //new black out recordss
+        checkboxid = fp[i].id;
+        //NewBlackOutList.push(checkboxid);
+        NewBlackOutList = NewBlackOutList.concat(String(checkboxid));
+      }
+
+  }
+  alert("NewBlackOutList:"+NewBlackOutList);
+  document.getElementById('HiddenNew').value = NewBlackOutList;
+
+  var bop = document.getElementsByClassName("BlackOutPress");
+  
+  var RemoveBlackOutList = "";
+  var j;
+
+  for (j = 0; j < bop.length; j++){
+      if(!bop[j].checked){
+          //remove blackedout
+          checkboxid = bop[j].id;
+          RemoveBlackOutList = RemoveBlackOutList.concat(String(checkboxid));
+      }
+  }
+  alert("RemoveBlackOutList:"+RemoveBlackOutList);
+  document.getElementById('HiddenRemove').value = RemoveBlackOutList;
+  
+  
+  document.getElementById('BOForm').submit();
+  
+}
+
+
+</script>
+    
+
+
+    
+    
+
+    <h1 id="bio">Your Timetable<h1>
+
+    <!-- assume tutor first -->
+
+    <form id="BOForm" name="BOForm" action="." method="POST">{% csrf_token %}
+
+      <input class="btn" id="EditBlackOut" type="button" value="Edit Black Out" onclick="editBlackOutPressed(this.id)" />
+      <input type="hidden" name="HiddenNew" id="HiddenNew" value="" />
+
+      <input class="btn" id="SaveBlackOut" type="button" value="Save" onclick="saveBlackOutPressed(this.id)" />
+      <input type="hidden" name="HiddenRemove" id="HiddenRemove" value="" />
+    
+        
+    </form> 
+
+                             
+     {% include 'timetable.html' %}
+     {% block timetable %}
+     {% endblock %}
+
+
+      
+
+
+
+
+
+     
+
+{% endblock %}
+
