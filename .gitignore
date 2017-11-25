@@ -103,3 +103,7 @@ ENV/
 
 # mypy
 .mypy_cache/
+main/migrations/0007_auto_20171124_1634.py
+main/migrations/0008_auto_20171124_1824.py
+db.sqlite3
+static/img/propic/CilcyWwUoAA3gVA.jpg
