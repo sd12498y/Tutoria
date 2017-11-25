@@ -240,10 +240,10 @@ class Wallet(models.Model):
 	def add(self,value):
 		self.balance += value
 		self.save()
-		notify.send(self.user, recipient=self.user, verb='$'+str(value)+'has been added to your wallet')
+		notify.send(self.user, recipient=self.user, verb='$'+str(value)+' has been added to your wallet')
 		send_mail(
-		    '$'+str(value)+'has been added to your wallet',
-		    'Hello' + self.user.username + 'This is to notify you that $' + str(value) +'has been added to your wallet',
+		    '$'+str(value)+' has been added to your wallet',
+		    'Hello ' + self.user.username + '. This is to notify you that $' + str(value) +' has recently been added to your wallet',
 		    'system@solveware.com',
 		    [self.user.email],
 		    fail_silently=False,
@@ -253,10 +253,10 @@ class Wallet(models.Model):
 	def minus(self,value):
 		self.balance -= value
 		self.save()
-		notify.send(self.user, recipient=self.user, verb='$'+str(value)+'has been deducted to your wallet')
+		notify.send(self.user, recipient=self.user, verb='$'+str(value)+' has been deducted to your wallet')
 		send_mail(
-		    '$'+str(value)+'has been deducted to your wallet',
-		    'Hello' + self.user.username + 'This is to notify you that $'+str(value)+'has been deducted to your wallet',
+		    '$'+str(value)+' has been deducted to your wallet',
+		    'Hello ' + self.user.username + '. This is to notify you that $'+str(value)+' has recently been deducted to your wallet',
 		    'system@solveware.com',
 		    [self.user.email],
 		    fail_silently=False,
@@ -343,9 +343,11 @@ class Transaction(models.Model):
 	HG = "Holding up by MyTutor"
 	TD = "Transferred"
 	CN = "Cancelled"
+	WL = 'Withdrawl'
 	choices = (
 		(AV, 'Add Value'),
 		(TP, 'Tutorial Payment'),
+		(WL, 'Withdrawl'),
 		)
 	senderID = models.ForeignKey(User, related_name='senderID', on_delete=models.CASCADE, default = "")
 	receiverID = models.ForeignKey(User, related_name='receiverID', on_delete=models.CASCADE, default = "")
@@ -358,7 +360,7 @@ class Transaction(models.Model):
 	STATUSCHOICES = (
 		(HG, 'Holding up by MyTutor'),
 		(TD, 'Transferred'),
-		(CN, 'Cancelled')
+		(CN, 'Cancelled'),
 		)
 	status= models.CharField(
 		max_length=30,
