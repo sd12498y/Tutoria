@@ -10,7 +10,7 @@ from django.views import generic
 from django.contrib import auth
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
-from .models import myUser, Tutor, PrivateTutor, ContractTutor, Booking, Transaction, Wallet, Session, Course, Coupon, Student, Blackout, Payment,CourseCatalogue, Review
+from .models import myUser, Tutor, PrivateTutor, ContractTutor, Booking, Transaction, Wallet, Session, Course, Coupon, Student, Blackout, Payment,CourseCatalogue, Review, Tag
 from django.db.models import Q
 from notifications.signals import notify
 from django.shortcuts import get_object_or_404
@@ -30,6 +30,11 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib import messages
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
+from itertools import chain
+from django.views.generic.edit import ModelFormMixin
+import operator
+
+
 #Olivia: 7/11/17 14:50
 from django.db.models import Q
 import pytz
@@ -334,13 +339,182 @@ class BookingHistoryView(generic.ListView):
         """Return the last five published questions."""
         return Booking.objects.filter(Q(studentID=self.request.user.myuser) | Q(tutorID=self.request.user.myuser) ).order_by('-timestamp')[:7]
 
+
+def search(request):
+    template = loader.get_template('search.html')
+    context={}
+    '''if request.method=="POST":
+
+        return redirect(..., form= form)'''
+    return HttpResponse(template.render(context,request))
+
 class SearchResultView(generic.ListView):
-	template_name = 'searchResults.html'
-	context_object_name = 'ListOfTutor'
-	def get_queryset(self):
-		return Tutor.objects.all().select_subclasses()
+    template_name = 'searchResults.html'
+    context_object_name = 'ListOfTutor'
+
+    def get_queryset(self):
+        #result = super(SearchResultView, self).get_queryset()
+        #print self.request.GET['firstName']
+        #if self.request.GET.get("firstName", False):
+            #print self.request.GET.get('firstName')
+            #fN = self.request.GET.get("firstName", False)
+            #print fN
+        Presult = PrivateTutor.objects.all()
+        Cresult = ContractTutor.objects.all()
+        Rtag = Tag.objects.all().distinct()
+        #for i in Presult:
+            #print i.user.user.username
+        user = self.request.user
+        username = user.username
+        #print username
+        #print "haha"
+        fN = self.request.GET.get("firstName", False)
+        lN = self.request.GET.get("lastName", False)
+        sch = self.request.GET.get("school", False)
+        cC = self.request.GET.get("courseCode", False)
+        tg = self.request.GET.get("tag", False)
+        typ = self.request.GET.get("type", False)
+        #hR = self.request.GET.get("hourlyRate", 0)
+        if self.request.GET.get("hourlyRateL"):
+            hRL = self.request.GET.get("hourlyRateL")
+        else:
+            hRL = 0
+        if self.request.GET.get("hourlyRateU"):
+            hRU = self.request.GET.get("hourlyRateU")
+        else:
+            hRU = 10000
+        showPref = self.request.GET.get("showPref", False)
+        sort = self.request.GET.get("sort", False)
+        #print fN
+        #print lN
+        #print sch
+        #print cC
+        #print tg
+        #print typ
+        #print hRL
+        #print hRU
+        #print showPref
+        #print sort
+
+#!!! isactivated, tag, averagereviewrate
+
+        Plist = []
+        Clist = []
+
+        if showPref == "All":
+            if typ == "Private Tutor":
+                Presult = Presult.exclude(user__user__username=username)
+                #!!!isactivated=False
+                #print Presult
+                Presult = Presult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg,hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()
 
 
+
+                #Ptag = Ptag.filter(tutorID=Presult.) #tutorid
+
+                result_list = Presult
+
+            if typ == "Contracted Tutor":
+                Cresult = Cresult.exclude(user__user__username=username)
+                #!!!isactivated=False
+
+                Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()
+
+                result_list = Cresult
+
+            if typ == False:
+                Presult = Presult.exclude(user__user__username=username)
+                #!!!isactivated=False
+
+                Presult = Presult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg,hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()
+
+                Cresult = Cresult.exclude(user__user__username=username)
+                #!!!isactivated=False
+
+                Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()
+                #Presult = Presult.order_by('-hourlyRate').distinct()
+
+                #Cresult = Cresult.distinct()
+
+                if hRL > 0:
+                    result_list = Presult
+                elif hRL == 0:
+                    result_list = list(chain(Presult, Cresult))
+
+        #return result_list
+
+        if showPref == "Seven":
+            #listofPTutor = PrivateTutor.objects.all()
+            #listofCTutor = ContractTutor.objects.all()
+            listofBookedtutor = Booking.objects.all()
+            listofBlackout = Blackout.objects.all()
+
+            #Booking.objects.values("id").annotate(Count("id"))
+            #Blackout.objects.values("id").annotate(Count("id"))
+            Presult = Presult.exclude(user__user__username=username).order_by('-hourlyRate').distinct()
+                #!!!isactivated=False
+
+            #Presult = Presult.order_by('-hourlyRate').distinct()
+            for oneTutor in Presult:
+                count = 0
+                for oneBooking in listofBookedtutor:
+                    if oneBooking.tutorID == oneTutor.id: #not sure oneTutor.id is the id for tutor?
+                        count = count + 1
+                for oneBlackout in listofBlackout:
+                    if oneBlackout.tutorID == oneTutor.id:
+                        count = count + 1
+                if count < 168:
+                    Plist.append(oneTutor)
+            #print Plist
+            #result_list = Plist
+
+            Cresult = Cresult.exclude(user__user__username=username).distinct()
+                #!!!isactivated=False
+
+            #Cresult = Cresult.distinct()
+            for oneTutor in Cresult:
+                count = 0
+                for oneBooking in listofBookedtutor:
+                    if oneBooking.tutorID == oneTutor.id:
+                        count = count + 1
+                for oneBlackout in listofBlackout:
+                    if oneBlackout.tutorID == oneTutor.id:
+                        count = count + 1
+                if count < 336:
+                    Clist.append(oneTutor)
+            #print Clist
+            result_list = list(chain(Plist, Clist))
+
+
+        #avgReviewlist = Review.objects.filter(tutorID=result_list.id)
+        '''for oneTutor in result_list:
+            Rtag = Tag.objects.filter(tutorID = oneTutor.id)'''
+        #print Rtag
+
+
+        #context = {'ListOfTutor': result_list, 'ListofTag': Rtag, 'avgReviewList': avgReviewList}
+        #context = {'ListOfTutor': result_list, 'ListofTag': Rtag, }
+        #template = loader.get_template('searchResults.html')
+        #print result_list
+        #template = loader.get_template('searchResults.html')
+        return result_list #context
+        #return context
+        #return HttpResponse(template.render(context))
+        #return Rtag
+
+
+        #result = result.order_by('-hourlyRate')
+        #return Qlist
+
+
+        #result = result.order_by('-hourlyRate')
+        #return result
+
+
+    #if
+	#context_object_name = 'ListOfTutor'
+	#def get_queryset(self):
+		#return Tutor.objects.all().select_subclasses()
 
 def extimetable(request, TutorID):
     if request.method == "GET":
@@ -365,7 +539,6 @@ def customIntimetable(request, type):
 
     thisWeekDates = Dates[:7]
     nextWeekDates = Dates[-7:]
-
 
     ListOfSessions = []
     Hours = []
@@ -508,7 +681,6 @@ def intimetable_tutor(request):
 
 def bio(request, TutorID):
     if request.method == "GET":
-
         context = customTimetable(TutorID, request.user.myuser)        
         template = loader.get_template('bio2.html')
         #context = {'TargetTutor': TargetTutor, 'TodayDate': TodayDate, 'StartDate': StartDate, "EndDate": EndDate, "Dates": Dates, "thisWeekDates": thisWeekDates, "nextWeekDates":nextWeekDates, "Times": Hours, "ListOfSessions": ListOfSessions, 'TutorCourse' : TutorCourse}
@@ -596,10 +768,10 @@ def customTimetable(TutorID, own):
 
                 #check for booking history of that tutor
                 for x in DateBookSessionOfTutor:
-                    
+
                     #string of Booked starttime of that tutor on that date
                     strx = x.startTime.strftime('%H:%M:%S')
-                   
+
                     if strx == eachhour:
                         
                         booked_found = 1
@@ -652,12 +824,11 @@ def translateButtonid(buttonid):
 
 def confirmBooking(request, TutorID):
     t = Tutor.objects.get_subclass(pk=TutorID)
-    
+
     Pressedbutton = request.session['extimetableToConfirmBooking_token']
     
     buttondata = translateButtonid(Pressedbutton)
     #assume bookings are all not yet begun
-    
     tutorUsername = t.user.user.username
     TutorCourse = Course.objects.filter(tutorID = TutorID)
     ######
@@ -689,7 +860,7 @@ def confirmBooking(request, TutorID):
         return HttpResponse(template.render(context, request))
 
     if request.method=="POST":
-        
+
         if hasattr(t, 'hourlyRate'):
             CouponUsed = request.POST.get('CouponUsed', '')
 
@@ -697,17 +868,17 @@ def confirmBooking(request, TutorID):
 
             if (CouponUsed == "Yes"):
                 commission = 0;
-                
+
             else:
                 commission = tutoringFee*getCommissionRate()
-                
+
 
             totalPayable = tutoringFee + commission
 
             b.tutoringFee = tutoringFee
             b.commission = commission
             b.totalPayable = totalPayable
-            
+
             #make payment
             bookingResults = b.createPayment()
             if (bookingResults == False):
@@ -716,21 +887,12 @@ def confirmBooking(request, TutorID):
                 return redirect('main:bookFail')
                 
 
-
-
-        
-
         b.status = "not yet begun"
         b.timestamp = timezone.localtime(timezone.now())
 
-        #put payment in
-        b.save()
-        bookingID = b.id
-        if hasattr(t, 'hourlyRate'):
-
-            print b.id
-            bookingResults.bookingID = b
-            bookingResults.createTransaction()
+        print b.id
+        bookingResults.bookingID = b
+        bookingResults.createTransaction()
         return HttpResponseRedirect('/booking/%s/' % bookingID)
 
 
@@ -755,7 +917,7 @@ def ConfirmCancel(request, booking_id):
 
 
 def BookingDetails(request, pk):
-    
+
     if request.method == 'POST':
         if 'cancelsession' in request.POST:
             #cancel
@@ -763,7 +925,7 @@ def BookingDetails(request, pk):
             request.session['CancelBookData_Token'] = BookingData.Bookingid
             ############################################
             return HttpResponseRedirect('/tutor/BookingDetails_stu/%s/ConfirmCancellation/' % BookingID)
-         
+
     print "BookingDetails"
     booking = Booking.objects.get(pk = pk)
     if (request.user.myuser == booking.studentID):
@@ -771,6 +933,7 @@ def BookingDetails(request, pk):
     else:
         interfaceType = "Tutor"
     
+
     template = loader.get_template('booking_details.html')
     context = {'booking': booking, 'interfaceType': interfaceType}
     return HttpResponse(template.render(context, request))
@@ -787,6 +950,3 @@ class BookingDetailView(generic.DetailView):
         template = loader.get_template('booking_details.html')
         context = {'BookingData': BookingData, }
         return HttpResponse(template.render(context, request))
-        
-
-
