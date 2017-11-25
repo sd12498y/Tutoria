@@ -459,7 +459,11 @@ class SearchResultView(generic.ListView):
                     Cresult = Presult.filter(Q(tag__tag__iexact=tg))
                 Presult = Presult.filter(Q(hourlyRate__range=(hRL,hRU)))
                 Presult = Presult.filter(Q(isactivated=True)).order_by('-hourlyRate').distinct()
-                Cresult = Presult.filter(Q(isactivated=True))
+                result_list1 = Presult
+                Cresult = Cresult.filter(Q(isactivated=True))
+                result_list2 = Cresult
+                result_list = list(chain(result_list1, result_list2))
+
 
             if showPref == "Seven":
                 #listofPTutor = PrivateTutor.objects.all()
@@ -506,7 +510,7 @@ class SearchResultView(generic.ListView):
                     if count < 336:
                         Clist.append(oneTutor)
                 #print Clist
-            result_list = list(chain(Plist, Clist))
+                result_list = list(chain(Plist, Clist))
 
         return result_list #context
 
