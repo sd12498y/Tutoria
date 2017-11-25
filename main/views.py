@@ -174,7 +174,7 @@ class SearchResultView(generic.ListView):
             hRU = 10000
         showPref = self.request.GET.get("showPref", False)
         sort = self.request.GET.get("sort", False)
-        #print fN
+        print fN
         #print lN
         #print sch
         #print cC
@@ -194,20 +194,55 @@ class SearchResultView(generic.ListView):
             if typ == "Private Tutor":
                 Presult = Presult.exclude(user__user__username=username)
                 #!!!isactivated=False
+                print Presult
+
+                '''Presult = Presult.filter(user__user__first_name__icontains=fN).filter(user__user__last_name__icontains=lN).filter(university__icontains=sch).filter(course__courseCode__courseCode__icontains=cC).filter(tag__tag__icontains=tg).filter(hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()'''
+
+                Presult = Presult.filter(user__user__first_name__icontains=fN).filter(user__user__last_name__icontains=lN).filter(university__icontains=sch).filter(hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()
                 #print Presult
-                Presult = Presult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg,hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()
+                #print "haha"
+
+                for oneTutor in Presult:
+                    if hasattr(oneTutor, "courseCode") == True:
+                        Presult = Presult.filter(course__courseCode__courseCode__icontains=cC)
+                    if hasattr(oneTutor, "courseCode") == False:
+                        Presult = Presult.exclude(user__user__username=oneTutor.user.user.username)
+                    if hasattr(oneTutor, "tag") == True:
+                        Presult = Presult.filter(tag__tag__icontains=tg)
+                    if hasattr(oneTutor, "tag") == False:
+                        Presult = Presult.exclude(user__user__username=oneTutor.user.user.username)
+
+                '''Presult = Presult.filter(user__user__first_name__icontains=fN).filter(user__user__last_name__icontains=lN).filter(university__icontains=sch).filter(course__courseCode__courseCode__icontains=cC).filter(tag__tag__icontains=tg).filter(hourlyRate__range=(hRL,hRU)).filter(course__courseCode__courseCode=empty).filter(tag__tag__icontains=null).order_by('-hourlyRate').distinct()'''
+
+                Presult = Presult.order_by('-hourlyRate').distinct()
 
 
 
                 #Ptag = Ptag.filter(tutorID=Presult.) #tutorid
 
                 result_list = Presult
+                print result_list
 
             if typ == "Contracted Tutor":
                 Cresult = Cresult.exclude(user__user__username=username)
                 #!!!isactivated=False
 
-                Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()
+                '''Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()'''
+
+                Cresult = Cresult.filter(user__user__first_name__icontains=fN).filter(user__user__last_name__icontains=lN).filter(university__icontains=sch).distinct()
+
+
+                for oneTutor in Cresult:
+                    if hasattr(oneTutor, "courseCode") == True:
+                        Cresult = Cresult.filter(course__courseCode__courseCode__icontains=cC)
+                    if hasattr(oneTutor, "courseCode") == False:
+                        Cresult = Cresult.exclude(user__user__username=oneTutor.user.user.username)
+                    if hasattr(oneTutor, "tag") == True:
+                        Cresult = Cresult.filter(tag__tag__icontains=tg)
+                    if hasattr(oneTutor, "tag") == False:
+                        Cresult = Cresult.exclude(user__user__username=oneTutor.user.user.username)
+
+                Cresult = Cresult.distinct()
 
                 result_list = Cresult
 
@@ -215,15 +250,47 @@ class SearchResultView(generic.ListView):
                 Presult = Presult.exclude(user__user__username=username)
                 #!!!isactivated=False
 
-                Presult = Presult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg,hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()
+                '''Presult = Presult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg,hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()'''
+
+                Presult = Presult.filter(user__user__first_name__icontains=fN).filter(user__user__last_name__icontains=lN).filter(university__icontains=sch).filter(hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()
+                #print Presult
+                #print "haha"
+
+                for oneTutor in Presult:
+                    if hasattr(oneTutor, "courseCode") == True:
+                        Presult = Presult.filter(course__courseCode__courseCode__icontains=cC)
+                    if hasattr(oneTutor, "courseCode") == False:
+                        Presult = Presult.exclude(user__user__username=oneTutor.user.user.username)
+                    if hasattr(oneTutor, "tag") == True:
+                        Presult = Presult.filter(tag__tag__icontains=tg)
+                    if hasattr(oneTutor, "tag") == False:
+                        Presult = Presult.exclude(user__user__username=oneTutor.user.user.username)
+
+                Presult = Presult.order_by('-hourlyRate').distinct()
+
 
                 Cresult = Cresult.exclude(user__user__username=username)
                 #!!!isactivated=False
 
-                Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()
+                '''Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()'''
+
+                Cresult = Cresult.filter(user__user__first_name__icontains=fN).filter(user__user__last_name__icontains=lN).filter(university__icontains=sch).distinct()
+
+
+                for oneTutor in Cresult:
+                    if hasattr(oneTutor, "courseCode") == True:
+                        Cresult = Cresult.filter(course__courseCode__courseCode__icontains=cC)
+                    if hasattr(oneTutor, "courseCode") == False:
+                        Cresult = Cresult.exclude(user__user__username=oneTutor.user.user.username)
+                    if hasattr(oneTutor, "tag") == True:
+                        Cresult = Cresult.filter(tag__tag__icontains=tg)
+                    if hasattr(oneTutor, "tag") == False:
+                        Cresult = Cresult.exclude(user__user__username=oneTutor.user.user.username)
+
+
                 #Presult = Presult.order_by('-hourlyRate').distinct()
 
-                #Cresult = Cresult.distinct()
+                Cresult = Cresult.distinct()
 
                 if hRL > 0:
                     result_list = Presult
