@@ -15,8 +15,12 @@ urlpatterns = [
 	url(r'^register/(?P<type>\w+)/success$', views.reg_success, name='reg_success'),	
 	url(r'^booking/failed/$', views.bookFail, name='bookFail'),
 	url(r'^wallet/$', views.WalletView.as_view(), name='wallet'),
-	url(r'^wallet/addValue/$', views.addValue, name='addValue'),
-
+	url(r'^wallet/addValue/(?P<value>[0-9]+)$', views.addValue, name='addValue'),
+	url(r'^wallet/addValue_admin/(?P<value>[0-9]+)$', views.addValue_admin, name='addValue_admin'),
+	url(r'^wallet/withDrawValue/(?P<value>[0-9]+)$', views.withDrawValue, name='withDrawValue'),
+	url(r'^wallet/withDrawValue_admin/(?P<value>[0-9]+)$', views.withDrawValue_admin, name='withDrawValue_admin'),
+	url(r'^search/$', views.SearchResultView.as_view(), name='search'),
+	url(r'^search/(?P<TutorID>[0-9]+)/$', views.bio, name='bio'),
 	url(r'^intimetable/$', views.intimetable, name='intimetable'),
 
 	url(r'^intimetable/student/$', views.intimetable_student, name='intimetable_student'),	
@@ -34,7 +38,8 @@ urlpatterns = [
 	url(r'^search/Result/(?P<TutorID>[0-9]+)/confirmbooking/$', views.confirmBooking, name='confirmBooking'),
 	url(r'^api/checkUsername/$', views.checkUsername, name='checkUsername'),
 	url(r'^api/checkEmail/$', views.checkEmail, name='checkEmail'),
-
+	url(r'^api/checkEnough/$', views.checkEnough, name='checkEnough'),
+	url(r'^api/checkEnough_admin/$', views.checkEnough_admin, name='checkEnough_admin'),
 	url(r'^api/getCourseSet/$', views.getCourseSet, name='getCourseSet'),
 	url(r'^profile/$', views.profile, name='profile'),
 	url(r'^updateprofile/$', views.updateprofile, name='updateprofile'),

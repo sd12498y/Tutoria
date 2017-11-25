@@ -141,7 +141,7 @@
 {% endif %}
 {% if tutor %}
 <div class="tutor row row-content">
-	<form action="{% url 'main:updateprofile' %}" class="form-edit-tutor" method="post" enctype="multipart/form-data">
+	<form action="{% url 'main:updateprofile' %}" class="form-edit-tutor" method="post" enctype="multipart/form-data" onsubmit="return validateHourlyRate()">
     {% csrf_token %}
 	 <h2>Tutor Info</h2>
       <div class="form-row">       

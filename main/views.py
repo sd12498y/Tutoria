@@ -70,6 +70,16 @@ def checkEnough(request):
         amount = request.GET.get('amount',"")
         exists = request.user.wallet.enough(amount)
         return JsonResponse({'exists': exists})
+
+def checkEnough_admin(request):
+    if request.method == 'GET':
+        if request.GET.get('amount',""):
+            admin = User.objects.get(username="mytutors")
+            amount = request.GET.get('amount',"")
+            exists = request.user.wallet.enoughMoney(amount)
+        else:
+            exists=True
+        return JsonResponse({'exists': exists}) 
     
 def checkCouponCode(request):
     if request.method == 'GET':
@@ -130,7 +140,7 @@ def bio_review(TutorID):
     #return render(request,'comment.html', {'review_list': review_list})
 
 def end_all_sessions(request):
-    booking_list = Booking.objects.filter(Q(sessionDate__lte=timezone.localtime(timezone.now()).date()), Q(endTime__lte = timezone.localtime(timezone.now()).time()), ~Q(status="ended"))
+    booking_list = Booking.objects.filter(~Q(status="ended"))
     for booking in booking_list:
         booking.end()
     return redirect('main:manage_sessions')
@@ -326,38 +336,39 @@ class WalletView(generic.ListView):
         return self.request.user.wallet.getHistory()
 
 
-def addValue(request):
-    request.user.wallet.add(100)
-    value=100
+def addValue(request, value):
+    value = float(value)
+    request.user.wallet.add(value)
     t = Transaction(senderID=request.user, receiverID=request.user, transactionAmount=value, action="Add Value", status=Transaction.TD)
     print "!23"
     t.save()
     return HttpResponseRedirect(reverse('main:wallet'))
 
-def withDrawValue(request):
-    request.user.wallet.minus(100)
-    value=100
+def withDrawValue(request, value):
+    value = float(value)
+    request.user.wallet.minus(value)
     t = Transaction(senderID=request.user, receiverID=request.user, transactionAmount=value, action=Transaction.WL, status=Transaction.TD)
     t.save()
     return HttpResponseRedirect(reverse('main:wallet'))
 
 @staff_member_required    
-def addValue_admin(request):
-    value=100
+def addValue_admin(request, value):
+    value = float(value)
     admin = User.objects.get(username="mytutors")
-    admin.wallet.add(100)
+    admin.wallet.add(value)
     t = Transaction(senderID=request.user, receiverID=admin, transactionAmount=value, action="Add Value", status=Transaction.TD)
     t.save()
     return HttpResponseRedirect(reverse('main:wallet'))
 
 @staff_member_required    
-def withDrawValue(request):
-    value=100
+def withDrawValue_admin(request, value):
+    value = float(value)
     admin = User.objects.get(username="mytutors")
-    admin.wallet.minus(100)
-    t = Transaction(senderID=admin, receiverID=admin, transactionAmount=value, action=Transaction.WL, status=Transaction.TD)
+    admin.wallet.minus(value)
+    t = Transaction(senderID=request.user, receiverID=request.user, transactionAmount=value, action=Transaction.WL, status=Transaction.TD)
     t.save()
     return HttpResponseRedirect(reverse('main:wallet'))
+
 
 class BookingHistoryView(generic.ListView):
     template_name = 'booking_history.html'
@@ -455,7 +466,7 @@ class SearchResultView(generic.ListView):
                 result_list = Result.order_by('-hourlyRate').distinct()
             else:
                 result_list = Result.distinct() 
-            #return result_list
+            return result_list
         else:
             print "there"
             if showPref == "All":
@@ -534,7 +545,6 @@ class SearchResultView(generic.ListView):
                 #print Clist
                 result_list = list(chain(Plist, Clist))
 
-        return result_list #context
 
 def extimetable(request, TutorID):
     if request.method == "GET":
@@ -546,7 +556,8 @@ def extimetable(request, TutorID):
     elif request.method == "POST":
         Pressedbutton = request.POST.get('eachbutton', '')
         request.session['extimetableToConfirmBooking_token'] = Pressedbutton
-        return HttpResponseRedirect('/search/%s/confirmbooking/' % TutorID)
+        return redirect('main:confirmBooking', TutorID=TutorID)
+        #return HttpResponseRedirect('/search/Result/%s/confirmbooking/' % TutorID)
 
 
 
