@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<script type="text/javascript">
+var global_buttonid;
+var status;
+
+var coursename;
+
+var firstload = 1;
+
+var settimetable = 0;
+
+
+function pressed(){
+  
+  
+  var i;
+  
+  var fp = document.getElementsByClassName("freePress");
+  for (i = 0; i < fp.length; i++) {
+      fp[i].disabled = true;
+      fp[i].style.backgroundColor= "#fff8e1";
+
+
+  }
+
+  var bp = document.getElementsByClassName("BookedPress");
+  
+  for (i = 0; i < bp.length; i++) {
+      bp[i].disabled = false;
+      bp[i].value = "BookingID: " + bp[i].id
+      bp[i].style.backgroundColor= "#1c2a48";
+      bp[i].style.color = "#FFFFFF";
+      
+  }
+  
+  var oobp = document.getElementsByClassName("OOBPress");
+  
+  for (i = 0; i < oobp.length; i++) {
+      oobp[i].disabled = true;
+      oobp[i].style.backgroundColor= "#000000";
+      
+  }
+  var bop = document.getElementsByClassName("BlackOutPress");
+  
+  for (i = 0; i < bop.length; i++) {
+      bop[i].disabled = true;
+      bop[i].style.backgroundColor=  "#808080";
+      
+  }
+  document.getElementById('SaveBlackOut').style.visibility = 'hidden';
+}
+
+
+
+
+</script>
+    
+
+
+    
+    
+
+    
+
+    <!-- assume tutor first -->
+
+    {% include 'intimetable.html' %}
+    {% block intimetable %}
+    {% endblock %}
+
+         
+
+{% endblock %}
+

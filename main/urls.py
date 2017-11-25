@@ -18,7 +18,11 @@ urlpatterns = [
 	url(r'^wallet/addValue/$', views.addValue, name='addValue'),
 	url(r'^search/$', views.SearchResultView.as_view(), name='search'),
 	url(r'^search/(?P<TutorID>[0-9]+)/$', views.bio, name='bio'),
-	#url(r'^intimetable/$', views.intimetable, name='intimetable'),
+	url(r'^intimetable/$', views.intimetable, name='intimetable'),
+
+	url(r'^intimetable/student/$', views.intimetable_student, name='intimetable_student'),	
+	url(r'^intimetable/tutor/$', views.intimetable_tutor, name='intimetable_tutor'),
+
 	url(r'^tutor/(?P<TutorID>[0-9]+)/extimetable/$', views.extimetable, name='extimetable'),
 	url(r'^booking/(?P<pk>[0-9]+)/cancel$', views.CancelView.as_view(), name='cancel'),
 	url(r'^booking/(?P<booking_id>[0-9]+)/confirmcancel$', views.ConfirmCancel, name='confirmCancel'),

@@ -27,19 +27,26 @@ function pressed(){
   
   for (i = 0; i < bp.length; i++) {
       bp[i].disabled = true;
-      bp[i].style.backgroundColor= "#004d40";
+      bp[i].style.backgroundColor= "#1c2a48";
       
   }
   var sdp = document.getElementsByClassName("SameDayPress");
   
   for (i = 0; i < sdp.length; i++) {
       sdp[i].disabled = true;
-      sdp[i].style.backgroundColor= "#4B515D";
+      sdp[i].style.backgroundColor= "#59698d";
       
   }
   var oobp = document.getElementsByClassName("OOBPress");
   
   for (i = 0; i < oobp.length; i++) {
+      oobp[i].disabled = true;
+      oobp[i].style.backgroundColor= "#000000";
+      
+  }
+  var bop = document.getElementsByClassName("BlackOutPress");
+  
+  for (i = 0; i < bop.length; i++) {
       oobp[i].disabled = true;
       oobp[i].style.backgroundColor= "#000000";
       
@@ -66,10 +73,12 @@ function pressed(){
   
 	   
      <input class="btn disabled" id="" type="button" value="Free" style="width:200px; background-color:#fff8e1;"/>
-     <input class="btn disabled" id="" type="button" value="Booked" style="width:200px; background-color:#004d40;"/>     
-     <input class="btn disabled" id="" type="button" value="Same Day" style="width:200px; background-color:#4B515D;"/>   
-     <input class="btn disabled" id="" type="button" value="Black Out/Unavailable" style="width:200px; background-color:#000000;"/>
-
+     <span style="color:white">
+     <input class="btn disabled" id="" type="button" value="Booked" style="width:200px; background-color:#1c2a48;"/>     
+     <input class="btn disabled" id="" type="button" value="Same Day" style="width:200px; background-color:#59698d;"/>
+     <input class="btn disabled" id="" type="button" value="Black Out / Unavailable" style="width:200px; background-color:#000000;"/> 
+   </span>
+     
   
                              
      {% include 'timetable.html' %}
