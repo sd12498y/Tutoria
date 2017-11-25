@@ -29,7 +29,7 @@ function toggleSearch(){
 }
 
 </script>
-<div class="wrapper">
+<div class="container">
   <form action="Result/" method="GET">
     {% csrf_token %}
     <h1 align="center">SEARCH FOR YOUR TUTOR</h1>
@@ -62,6 +62,9 @@ function toggleSearch(){
         <label for="lastName">Last Name</label>
         <input class="form-control dump" type="text" name="lastName" id="lastName" placeholder="Last name">
       </div>
+    </div>
+  </br>
+    <div class="form-inline" align="center">
       <div class="form-group col">
         <label for="school">School</label>
         <input class="form-control dump" type="text" name="school" id="school" placeholder="School">

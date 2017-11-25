@@ -383,6 +383,14 @@ class SearchResultView(generic.ListView):
         cC = self.request.GET.get("courseCode", False)
         tg = self.request.GET.get("tag", False)
         typ = self.request.GET.getlist("type", False)
+        private = False
+        contract = False
+        if not typ == False:
+            for tutor_type in typ:
+                if tutor_type == 'private':
+                    private = True
+                if tutor_type == 'contract':
+                    contract = True
         #hR = self.request.GET.get("hourlyRate", 0)
         if self.request.GET.get("hourlyRateL"):
             hRL = self.request.GET.get("hourlyRateL")
@@ -394,26 +402,14 @@ class SearchResultView(generic.ListView):
             hRU = 10000
         showPref = self.request.GET.get("showPref", False)
         sort = self.request.GET.get("sort", False)
-        #print fN
-        #print lN
-        #print sch
-        #print cC
-        #print tg
-        #print typ
-        #print hRL
-        #print hRU
-        #print showPref
-        #print sort
-
-#!!! isactivated, tag, averagereviewrate
 
         Plist = []
         Clist = []
 
         if showPref == "All":
-            if 'private' in typ and not 'contract' in typ:
+            if private and not contract:
                 Result = PrivateTutor.objects.all()
-            elif 'contract' in typ and not 'private' in typ:
+            elif contract and not private:
                 Result = ContractTutor.objects.all()
             else:
                 Result = Tutor.objects.all()
@@ -430,37 +426,14 @@ class SearchResultView(generic.ListView):
                 Result = Result.filter(Q(course__courseCode__courseCode__iexact=cC)) 
             if not tg == "":
                 Result = Result.filter(Q(tag__tag__iexact=tg))
-            Result = Result.filter(Q(hourlyRate__range=(hRL,hRU)))
-            result_list = Result.order_by('-hourlyRate').distinct()   
-
-            if typ == "Contracted Tutor":
-                Cresult = Cresult.exclude(user__user__username=username)
-                #!!!isactivated=False
-
-                Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,isactivated=True,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()
-
-                result_list = Cresult
-
-            if typ == False:
-                Presult = Presult.exclude(user__user__username=username)
-                #!!!isactivated=False
-
-                Presult = Presult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,isactivated=True,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg,hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()
-
-                Cresult = Cresult.exclude(user__user__username=username)
-                #!!!isactivated=False
-
-                Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,isactivated=True,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()
-                #Presult = Presult.order_by('-hourlyRate').distinct()
-
-                #Cresult = Cresult.distinct()
-
-                if hRL > 0:
-                    result_list = Presult
-                elif hRL == 0:
-                    result_list = list(chain(Presult, Cresult))
-
-        #return result_list
+            if not contract:
+                Result = Result.filter(Q(hourlyRate__range=(hRL,hRU)))
+            Result = Result.filter(Q(isactivated=True))
+            if not contract:
+                result_list = Result.order_by('-hourlyRate').distinct()
+            else:
+                result_list = Result.distinct() 
+            #return result_list
 
         if showPref == "Seven":
             #listofPTutor = PrivateTutor.objects.all()
@@ -476,11 +449,9 @@ class SearchResultView(generic.ListView):
 
             #Booking.objects.values("id").annotate(Count("id"))
             #Blackout.objects.values("id").annotate(Count("id"))
-            Presult = Presult.exclude(user__user__username=username)
+            Result = Presult.exclude(user__user__username=username)
             Presult = Presult.filter(isactivated=True).order_by('-hourlyRate').distinct()
-                #!!!isactivated=False
 
-            #Presult = Presult.order_by('-hourlyRate').distinct()
             for oneTutor in Presult:
                 count = 0
                 for oneBooking in listofBookedtutor:
@@ -492,11 +463,9 @@ class SearchResultView(generic.ListView):
                         count = count + 1
                 if count < 168:
                     Plist.append(oneTutor)
-            #print Plist
-            #result_list = Plist
 
             Cresult = Cresult.exclude(user__user__username=username)
-            Cresult = Cresult.filter(isactivated=True).order_by('-hourlyRate').distinct().distinct()
+            Cresult = Cresult.filter(isactivated=True).distinct()
                 #!!!isactivated=False
 
             #Cresult = Cresult.distinct()
@@ -513,36 +482,7 @@ class SearchResultView(generic.ListView):
             #print Clist
             result_list = list(chain(Plist, Clist))
 
-
-        #avgReviewlist = Review.objects.filter(tutorID=result_list.id)
-        '''for oneTutor in result_list:
-            Rtag = Tag.objects.filter(tutorID = oneTutor.id)'''
-        #print Rtag
-
-
-        #context = {'ListOfTutor': result_list, 'ListofTag': Rtag, 'avgReviewList': avgReviewList}
-        #context = {'ListOfTutor': result_list, 'ListofTag': Rtag, }
-        #template = loader.get_template('searchResults.html')
-        #print result_list
-        #template = loader.get_template('searchResults.html')
         return result_list #context
-        #return context
-        #return HttpResponse(template.render(context))
-        #return Rtag
-
-
-        #result = result.order_by('-hourlyRate')
-        #return Qlist
-
-
-        #result = result.order_by('-hourlyRate')
-        #return result
-
-
-    #if
-	#context_object_name = 'ListOfTutor'
-	#def get_queryset(self):
-		#return Tutor.objects.all().select_subclasses()
 
 def extimetable(request, TutorID):
     if request.method == "GET":
