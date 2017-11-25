@@ -54,18 +54,11 @@ function pressed(){
 }
 
 
-
-
 </script>
-    
+    <a id="timetable"> </a>
 
+    <h1 id="bio">Timetable<h1>
 
-    
-    <form  action="/search/{{ TargetTutor.id }}/" method="get">
-      <input id="Book" type="submit" value="Detailed Profile" />
-    </form>
-
-    <h1 id="bio">Bio Timetable<h1>
 
 
 
@@ -83,6 +76,11 @@ function pressed(){
                              
      {% include 'timetable.html' %}
      {% block timetable %}
+     {% endblock %}
+
+<a id="review"> </a>
+     {% include 'comment.html' %}
+     {% block comment %}
      {% endblock %}
 
 
