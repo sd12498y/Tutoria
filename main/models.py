@@ -132,6 +132,7 @@ class PrivateTutor(Tutor):
 
 		#return [(field.name, field.value_to_string(self)) for field in PrivateTutor._meta.fields]
 class ContractTutor(Tutor):
+	#remove
 	ContractID = models.CharField(max_length=30, default='')
 	def extimetable_get_fields(self):
 		list = []
@@ -309,9 +310,9 @@ class Booking(models.Model):
 		return '%s booked %s' %(self.studentID.user.username, self.tutorID.user.username)
 	def createPayment(self):
 
-		company = User.objects.get(username = "mytutors")
+		#company = User.objects.get(username = "mytutors")
 
-		p = Payment.objects.create_payment(self.studentID.user, company, self.id, self.totalPayable, Payment.TP)
+		p = Payment.objects.create_payment(self.studentID.user, self.tutorID.user, self.id, self.totalPayable, Payment.TP)
 		#payflag = p.makePayment()
 		if (p == False):
 			return False
@@ -332,8 +333,8 @@ class Booking(models.Model):
 	def end(self):
 		self.status = "ended"
 		self.save()
-		p = Payment.objects.get(bookingID=self.id)
-		p.complete()
+		t = Transaction.objects.get(bookingID=self.bookingID)
+		t.complete()
 		send_mail(
 	    'Review Invitation',
 	    'Hello '+self.studentID.user.username+'. How is your experience in the tutorial session with ' + self.tutorID.user.username + ' ? Submit a review to rate your experience following this link: http://localhost:8000/'+self.id+'/review/',
@@ -442,7 +443,7 @@ class Transaction(models.Model):
 		self.status = Transaction.TD
 		self.save()
 		company = User.objects.get(username="mytutors")
-		company.wallet.add(self.bookingID.commission)
+		company.wallet.minus(self.bookingID.tutoringFee)
 		self.receiverID.wallet.add(self.bookingID.tutoringFee)
 
 	def cancel(self):
