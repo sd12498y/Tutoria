@@ -137,7 +137,18 @@ def end_all_sessions(request):
 
 def profile(request):
     course_catalogue = CourseCatalogue.objects.all().distinct()
-    return render(request,'userProfile.html', {'course_catalogue': course_catalogue,})
+    #get all tags
+    TagList = []
+    TagString = ""
+    if (hasattr(request.user.myuser, "tutor")):
+        TagList = Tag.objects.filter(tutorID = request.user.myuser.tutor)
+        #join string
+        print TagList
+        TagNameList=list(ttt.tag for ttt in TagList)
+        print TagNameList
+        TagString = str(' #'.join(TagNameList))
+        print TagString
+    return render(request,'userProfile.html', {'course_catalogue': course_catalogue, 'TagString': TagString,})
 
 def review(request, bookingID):
     if hasattr(request.user,"myuser"):
@@ -171,6 +182,17 @@ def updateprofile(request):
     if request.method=="POST":
         tutor = request.user.myuser.tutor
         tutor.description = request.POST.get("description","")
+        if (request.POST.get("tag", False)!=False):
+            #parse tag
+            tagstring = request.POST.get("tag", False)
+            Tag.objects.filter(tutorID = request.user.myuser.tutor).delete()
+            for x in tagstring.split('#'):
+                eachtag = x.strip()
+                print eachtag
+                ctag = Tag.objects.create(tutorID = request.user.myuser.tutor, tag = eachtag)
+                ctag.save()
+
+
         if request.POST.get("isactivated") == "on":
             tutor.isactivated = True
         else:
