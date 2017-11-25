@@ -25,14 +25,17 @@ urlpatterns = [
 
 	url(r'^intimetable/student/$', views.intimetable_student, name='intimetable_student'),	
 	url(r'^intimetable/tutor/$', views.intimetable_tutor, name='intimetable_tutor'),
-
+	#url(r'^search/$', views.SearchResultView.as_view(), name='search'),
+	url(r'^search/$', views.search, name='searchpage'),
+	url(r'^search/Result/$', views.SearchResultView.as_view(), name='search'),
+	url(r'^search/Result/(?P<TutorID>[0-9]+)/$', views.bio, name='bio'),
 	url(r'^tutor/(?P<TutorID>[0-9]+)/extimetable/$', views.extimetable, name='extimetable'),
 	url(r'^booking/(?P<pk>[0-9]+)/cancel$', views.CancelView.as_view(), name='cancel'),
 	url(r'^booking/(?P<booking_id>[0-9]+)/confirmcancel$', views.ConfirmCancel, name='confirmCancel'),
 	url(r'^bookinghistory/$', views.BookingHistoryView.as_view(), name='bookingHistory'),
 	#url(r'^booking/(?P<pk>[0-9]+)/$', views.BookingDetailView.as_view(), name='bookingDetail'),
 	url(r'^booking/(?P<pk>[0-9]+)/$', views.BookingDetails, name='bookingDetail'),
-	url(r'^search/(?P<TutorID>[0-9]+)/confirmbooking/$', views.confirmBooking, name='confirmBooking'),
+	url(r'^search/Result/(?P<TutorID>[0-9]+)/confirmbooking/$', views.confirmBooking, name='confirmBooking'),
 	url(r'^api/checkUsername/$', views.checkUsername, name='checkUsername'),
 	url(r'^api/checkEmail/$', views.checkEmail, name='checkEmail'),
 	url(r'^api/checkEnough/$', views.checkEnough, name='checkEnough'),
@@ -54,3 +57,4 @@ urlpatterns = [
     url(r'^end_all_sessions/$', views.end_all_sessions, name='end_all_sessions'),
     url(r'^bio_review/(?P<TutorID>[0-9]+)$', views.bio_review, name='bio_review'),
 ]
+
