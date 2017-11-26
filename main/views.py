@@ -67,8 +67,11 @@ def getCommissionRate():
 
 def checkEnough(request):
     if request.method == 'GET':
-        amount = request.GET.get('amount',"")
-        exists = request.user.wallet.enough(amount)
+        if request.GET.get('amount',""):
+            amount = request.GET.get('amount',"")
+            exists = request.user.wallet.enoughMoney(amount)
+        else:
+            exists=True
         return JsonResponse({'exists': exists})
 
 def checkEnough_admin(request):
@@ -79,7 +82,7 @@ def checkEnough_admin(request):
             exists = request.user.wallet.enoughMoney(amount)
         else:
             exists=True
-        return JsonResponse({'exists': exists}) 
+        return JsonResponse({'exists': exists})   
     
 def checkCouponCode(request):
     if request.method == 'GET':
@@ -334,6 +337,19 @@ class WalletView(generic.ListView):
     def get_queryset(self):
         """Return the last five published questions."""
         return self.request.user.wallet.getHistory()
+    def post(self, request, *args, **kwargs):
+        value=request.POST.get("amount",100)
+        if 'addValue' in request.POST:
+            return redirect('main:addValue', value=value)
+        elif 'withDrawValue' in request.POST:
+            return redirect('main:withDrawValue', value=value)
+        elif 'withDrawValue_admin' in request.POST:
+            print "123"
+            return redirect('main:withDrawValue_admin', value=value)
+        else:
+            print "!23"
+            return redirect('main:addValue_admin', value=value)
+        return HttpResponseRedirect(reverse('main:index'))
 
 
 def addValue(request, value):
