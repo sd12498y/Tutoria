@@ -2,6 +2,7 @@
 
 {% block content %}
 <script type="text/javascript">
+/*
 function toggleSearch(){
     var showPrefAll = document.getElementById("showPrefAll").checked;
     var showPrefSeven = document.getElementById("showPrefSeven").checked;
@@ -27,7 +28,7 @@ function toggleSearch(){
       }
     }
 }
-
+*/
 </script>
 <div class="container">
   <form action="Result/" method="GET">
@@ -118,7 +119,8 @@ function toggleSearch(){
       <div class="form-group col-md-2 col-xs-offset-5">
         <label for="sort">Sort by:</label>
         <select class="form-control dump" name="sort" id="sort">
-          <option>Hourly Rate</option>
+          <option value="descending">from high price to low</option>
+          <option value="ascending">from low price to high</option>
           <option>Average review scores</option>
         </select>
       </div>

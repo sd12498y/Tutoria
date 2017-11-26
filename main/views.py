@@ -139,7 +139,8 @@ def bio_review(TutorID):
 
     #calculate average
     reviewAvg = review_list.aggregate(Avg('rate'))
-    return review_list, reviewAvg
+    print reviewAvg['rate__avg']
+    return review_list, reviewAvg['rate__avg']
     #return render(request,'comment.html', {'review_list': review_list})
 
 def end_all_sessions(request):
@@ -407,27 +408,13 @@ class SearchResultView(generic.ListView):
     context_object_name = 'ListOfTutor'
 
     def get_queryset(self):
-        #result = super(SearchResultView, self).get_queryset()
-        #print self.request.GET['firstName']
-        #if self.request.GET.get("firstName", False):
-            #print self.request.GET.get('firstName')
-            #fN = self.request.GET.get("firstName", False)
-            #print fN
         Presult = PrivateTutor.objects.all()
         Cresult = ContractTutor.objects.all()
         Rtag = Tag.objects.all().distinct()
-        #for i in Presult:
-            #print i.user.user.username
         user = self.request.user
         username = user.username
-        for tutor in Presult:
-            print tutor.user.user.username
-        #print username
-        #print "haha"
         fN = self.request.GET.get("firstName", False)
-        print fN
         lN = self.request.GET.get("lastName", False)
-        print lN
         sch = self.request.GET.get("school", False)
         cC = self.request.GET.get("courseCode", False)
         tg = self.request.GET.get("tag", False)
@@ -440,127 +427,79 @@ class SearchResultView(generic.ListView):
                     private = True
                 if tutor_type == 'contract':
                     contract = True
-        #hR = self.request.GET.get("hourlyRate", 0)
         if self.request.GET.get("hourlyRateL"):
             hRL = self.request.GET.get("hourlyRateL")
         else:
             hRL = 0
+        print hRL
         if self.request.GET.get("hourlyRateU"):
             hRU = self.request.GET.get("hourlyRateU")
         else:
             hRU = 10000
         showPref = self.request.GET.get("showPref", False)
         sort = self.request.GET.get("sort", False)
-
-        Plist = []
-        Clist = []
-
-        if showPref == "All" and( (private and not contract) or (contract and not private)):
-            print "here"
-            if private and not contract:
-                Result = PrivateTutor.objects.all()
-            elif contract and not private:
-                Result = ContractTutor.objects.all()
-
-
-            Result = Result.exclude(user__user__username=username)
-            if not fN == "":
-                print "123"
-                Result = Result.filter(Q(user__user__first_name__iexact=fN))
-            if not lN == "":
-                Result = Result.filter(Q(user__user__last_name__iexact=lN))
-            if not sch == "":
-                Result = Result.filter(Q(university__iexact=sch)) 
-            if not cC == "":
-                Result = Result.filter(Q(course__courseCode__courseCode__iexact=cC)) 
-            if not tg == "":
-                Result = Result.filter(Q(tag__tag__iexact=tg))
-            if not contract:
-                Result = Result.filter(Q(hourlyRate__range=(hRL,hRU)))
-            Result = Result.filter(Q(isactivated=True))
-            if not contract:
-                result_list = Result.order_by('-hourlyRate').distinct()
-            else:
-                result_list = Result.distinct() 
-            return result_list
+        if sort=="descending":
+            order="-hourlyRate"
         else:
-            print "there"
-            if showPref == "All":
-                print "hereeee"
-                Presult = Presult.exclude(user__user__username=username)
-                Cresult = Cresult.exclude(user__user__username=username)
-
-                if not fN == "":
-                    print "123"
-                    Presult = Presult.filter(Q(user__user__first_name__iexact=fN))
-                    Cresult = Presult.filter(Q(user__user__first_name__iexact=fN))
-                if not lN == "":
-                    Presult = Presult.filter(Q(user__user__last_name__iexact=lN))
-                    Cresult = Presult.filter(Q(user__user__last_name__iexact=lN))
-                if not sch == "":
-                    Presult = Presult.filter(Q(university__iexact=sch))
-                    Cresult = Presult.filter(Q(university__iexact=sch))
-                if not cC == "":
-                    Presult = Presult.filter(Q(course__courseCode__courseCode__iexact=cC))
-                    Cresult = Presult.filter(Q(course__courseCode__courseCode__iexact=cC))
-                if not tg == "":
-                    Presult = Presult.filter(Q(tag__tag__iexact=tg))
-                    Cresult = Presult.filter(Q(tag__tag__iexact=tg))
-                Presult = Presult.filter(Q(hourlyRate__range=(hRL,hRU)))
-                Presult = Presult.filter(Q(isactivated=True)).order_by('-hourlyRate').distinct()
-                result_list1 = Presult
-                Cresult = Cresult.filter(Q(isactivated=True))
-                result_list2 = Cresult
+            order="hourlyRate"
+        Presult = Presult.exclude(user__user__username=username)
+        Cresult = Cresult.exclude(user__user__username=username)
+        if not fN == "":
+            print "123"
+            if private or not contract:
+                Presult = Presult.filter(Q(user__user__first_name__iexact=fN))
+            if contract or not private:
+                Cresult = Cresult.filter(Q(user__user__first_name__iexact=fN))
+        if not lN == "":
+            if private or not contract:
+                Presult = Presult.filter(Q(user__user__last_name__iexact=lN))
+            if contract or not private:
+                Cresult = Cresult.filter(Q(user__user__last_name__iexact=lN))
+        if not sch == "":
+            if private or not contract:
+                Presult = Presult.filter(Q(university__iexact=sch))
+            if contract or not private:
+                Cresult = Cresult.filter(Q(university__iexact=sch))
+        if not cC == "":
+            if private or not contract:
+                Presult = Presult.filter(Q(course__courseCode__courseCode__iexact=cC))
+            if contract or not private:
+                Cresult = Cresult.filter(Q(course__courseCode__courseCode__iexact=cC))
+        if not tg == "":
+            if private or not contract:
+                Presult = Presult.filter(Q(tag__tag__iexact=tg))
+            if contract or not private:
+                Cresult = Cresult.filter(Q(tag__tag__iexact=tg))
+        if private or not contract:
+            Presult = Presult.filter(Q(hourlyRate__range=(hRL,hRU)))
+            Presult = Presult.filter(Q(isactivated=True)).order_by(order).distinct()
+            result_list1 = list(Presult)
+        if contract or not private:
+            Cresult = Cresult.filter(Q(isactivated=True))
+            result_list2 = list(Cresult)
+        if contract and not private:
+            result_list = result_list2
+        elif private and not contract:
+            result_list = result_list1
+        else:
+            if sort=="descending":
                 result_list = list(chain(result_list1, result_list2))
+            else:
+                result_list = list(chain(result_list2, result_list1))
 
-
-            if showPref == "Seven":
-                #listofPTutor = PrivateTutor.objects.all()
-                #listofCTutor = ContractTutor.objects.all()
-                listofBookedtutor = Booking.objects.all()
-                print listofBookedtutor
-                listofBookedtutor =  listofBookedtutor.exclude(tutorID__user__username=username)
-                print listofBookedtutor
-                listofBlackout = Blackout.objects.all()
-                print listofBlackout
-                listofBlackout = listofBlackout.exclude(tutorID__user__user__username=username)
-                print listofBlackout
-
-                #Booking.objects.values("id").annotate(Count("id"))
-                #Blackout.objects.values("id").annotate(Count("id"))
-                Presult = Presult.exclude(user__user__username=username)
-                Presult = Presult.filter(isactivated=True).order_by('-hourlyRate').distinct()
-
-                for oneTutor in Presult:
-                    count = 0
-                    for oneBooking in listofBookedtutor:
-                        print oneBooking.tutorID.tutor.isactivated
-                        if oneBooking.tutorID == oneTutor.id: #not sure oneTutor.id is the id for tutor?
-                            count = count + 1
-                    for oneBlackout in listofBlackout:
-                        if oneBlackout.tutorID == oneTutor.id:
-                            count = count + 1
-                    if count < 168:
-                        Plist.append(oneTutor)
-
-                Cresult = Cresult.exclude(user__user__username=username)
-                Cresult = Cresult.filter(isactivated=True).distinct()
-                    #!!!isactivated=False
-
-                #Cresult = Cresult.distinct()
-                for oneTutor in Cresult:
-                    count = 0
-                    for oneBooking in listofBookedtutor:
-                        if oneBooking.tutorID == oneTutor.id:
-                            count = count + 1
-                    for oneBlackout in listofBlackout:
-                        if oneBlackout.tutorID == oneTutor.id:
-                            count = count + 1
-                    if count < 336:
-                        Clist.append(oneTutor)
-                #print Clist
-                result_list = list(chain(Plist, Clist))
-            return result_list
+        if showPref == "Seven":
+            date = timezone.localtime(timezone.now()).date()
+            start_week = date
+            end_week = start_week + timedelta(7)
+            for tutor in result_list:
+                no_of_booking = len(tutor.user.b_tutor.all().filter(Q(sessionDate__range=(start_week,end_week))))
+                no_of_black_out = len(tutor.blackout_set.all().filter(Q(date__range=(start_week,end_week))))
+                total = no_of_booking+no_of_black_out
+                print result_list
+                if (hasattr(tutor,"privattutor") and total>=168) or (hasattr(tutor,"contracttutor") and total>=336):
+                    result_list.remove(tutor)
+                print result_list
+        return result_list
 
 
 def extimetable(request, TutorID):
