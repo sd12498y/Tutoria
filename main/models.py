@@ -37,13 +37,6 @@ class myUser(models.Model):
 		return '%s' % (self.user.username)
 	
 
-class myTutor(models.Model):
-	staff = models.OneToOneField(User, related_name='staff', on_delete=models.CASCADE)
-	admin = models.ForeignKey(User, related_name='admin', on_delete=models.CASCADE)
-
-	def __str__(self):
-		return '%s' % (self.staff.username)
-
 class StudentManager(models.Manager):
 	def create_student(self, user, university):
 		student = self.create(user=user, university=university)
