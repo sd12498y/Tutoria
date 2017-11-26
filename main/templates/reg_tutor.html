@@ -17,7 +17,28 @@
       document.getElementById("hourly").removeAttribute("readonly","");
     }
   }
-</script>
+
+  function validateHourlyRate(){
+    var hourlyRate = document.getElementById("hourly").value;
+    var hourlyRateDiv = document.getElementById("hourly");
+    if (hourlyRate%10 == 0){
+
+      hourlyRateDiv.classList.remove("is-invalid");
+      hourlyRateDiv.classList.add("is-valid");
+      return true;
+      //valid
+    }
+    else{
+      //invalid
+
+      hourlyRateDiv.classList.add("is-invalid");
+      hourlyRateDiv.classList.remove("is-valid");
+      return false;
+    }
+
+
+  }
+</script>       
       <label>School:</label>
       <div class="form-group">
       <input type="text" class="form-control is-invalid" name="school" id="school" placeholder="Your School" required="" autofocus="" onkeyup="validateSchool()" />
@@ -38,8 +59,20 @@
       </div>
       </div>
       <div class="form-group">
-      <label for="hourly">Hourly rate:</label>
-        <input type="text" name="hourly_rate" class="form-control" id="hourly">
+        <label for="hourly">Hourly rate:</label>
+        <input type="text" name="hourly_rate" class="form-control" id="hourly" autofocus="" onkeyup="validateHourlyRate()">
+        <div class="invalid-feedback" id="hourlyRateFeedback">
+              Please provide a hourly rate.
+        </div>
+        <small id="passwordHelpBlock" class="form-text text-muted">
+        
+          <i>
+            <ul>
+              <li>Your hourly rate must be a multiple of 10.</li>
+              
+            </ul>
+          </i>
+        </small>
       </div>
       <button class="btn btn-md btn-info btn-block" type="submit" value="register_student">Register</button>
       <a href = "{% url 'main:register' %}" class="btn btn-md btn-secondary btn-block" role="button" value="back">Back</a>

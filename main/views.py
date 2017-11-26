@@ -40,6 +40,7 @@ from django.db.models import Q
 import pytz
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core import serializers
+from django.db.models import Avg
 
 # Create your views here.
 class passwordResetView(views.PasswordResetView):
@@ -72,6 +73,7 @@ def checkEnough(request):
         else:
             exists=True
         return JsonResponse({'exists': exists})
+
 def checkEnough_admin(request):
     if request.method == 'GET':
         if request.GET.get('amount',""):
@@ -130,21 +132,36 @@ def login(request):
 def manage_sessions(request):
     return render(request,'manageSessions.html')
 
-def bio_review(request, TutorID):
+def bio_review(TutorID):
     #print request.user.myuser.id
-    myuser = myUser.objects.get(id=TutorID)
-    review_list = myuser.tutor.review_set.all().order_by('-timestamp')
-    return render(request,'comment.html', {'review_list': review_list})
+    TargetTutor = Tutor.objects.get(id=TutorID)
+    review_list = TargetTutor.review_set.all().order_by('-timestamp')
+
+    #calculate average
+    reviewAvg = review_list.aggregate(Avg('rate'))
+    return review_list, reviewAvg
+    #return render(request,'comment.html', {'review_list': review_list})
 
 def end_all_sessions(request):
-    booking_list = Booking.objects.filter(Q(sessionDate__lte=timezone.localtime(timezone.now()).date()), Q(endTime__lte = timezone.localtime(timezone.now()).time()), ~Q(status="ended"))
+    booking_list = Booking.objects.filter(~Q(status="ended"))
     for booking in booking_list:
         booking.end()
     return redirect('main:manage_sessions')
 
 def profile(request):
     course_catalogue = CourseCatalogue.objects.all().distinct()
-    return render(request,'userProfile.html', {'course_catalogue': course_catalogue,})
+    #get all tags
+    TagList = []
+    TagString = ""
+    if (hasattr(request.user.myuser, "tutor")):
+        TagList = Tag.objects.filter(tutorID = request.user.myuser.tutor)
+        #join string
+        print TagList
+        TagNameList=list(ttt.tag for ttt in TagList)
+        print TagNameList
+        TagString = str(' #'.join(TagNameList))
+        print TagString
+    return render(request,'userProfile.html', {'course_catalogue': course_catalogue, 'TagString': TagString,})
 
 def review(request, bookingID):
     if hasattr(request.user,"myuser"):
@@ -178,6 +195,17 @@ def updateprofile(request):
     if request.method=="POST":
         tutor = request.user.myuser.tutor
         tutor.description = request.POST.get("description","")
+        if (request.POST.get("tag", False)!=False):
+            #parse tag
+            tagstring = request.POST.get("tag", False)
+            Tag.objects.filter(tutorID = request.user.myuser.tutor).delete()
+            for x in tagstring.split('#'):
+                eachtag = x.strip()
+                print eachtag
+                ctag = Tag.objects.create(tutorID = request.user.myuser.tutor, tag = eachtag)
+                ctag.save()
+
+
         if request.POST.get("isactivated") == "on":
             tutor.isactivated = True
         else:
@@ -357,6 +385,7 @@ def withDrawValue_admin(request, value):
     t.save()
     return HttpResponseRedirect(reverse('main:wallet'))
 
+
 class BookingHistoryView(generic.ListView):
     template_name = 'booking_history.html'
     context_object_name = 'booking_history'
@@ -365,7 +394,7 @@ class BookingHistoryView(generic.ListView):
         return Booking.objects.filter(Q(studentID=self.request.user.myuser) | Q(tutorID=self.request.user.myuser) ).order_by('-timestamp')[:7]
 
 
-def search(request):
+def search1(request):
     template = loader.get_template('search.html')
     context={}
     '''if request.method=="POST":
@@ -391,14 +420,26 @@ class SearchResultView(generic.ListView):
             #print i.user.user.username
         user = self.request.user
         username = user.username
+        for tutor in Presult:
+            print tutor.user.user.username
         #print username
         #print "haha"
         fN = self.request.GET.get("firstName", False)
+        print fN
         lN = self.request.GET.get("lastName", False)
+        print lN
         sch = self.request.GET.get("school", False)
         cC = self.request.GET.get("courseCode", False)
         tg = self.request.GET.get("tag", False)
-        typ = self.request.GET.get("type", False)
+        typ = self.request.GET.getlist("type", False)
+        private = False
+        contract = False
+        if not typ == False:
+            for tutor_type in typ:
+                if tutor_type == 'private':
+                    private = True
+                if tutor_type == 'contract':
+                    contract = True
         #hR = self.request.GET.get("hourlyRate", 0)
         if self.request.GET.get("hourlyRateL"):
             hRL = self.request.GET.get("hourlyRateL")
@@ -410,147 +451,130 @@ class SearchResultView(generic.ListView):
             hRU = 10000
         showPref = self.request.GET.get("showPref", False)
         sort = self.request.GET.get("sort", False)
-        #print fN
-        #print lN
-        #print sch
-        #print cC
-        #print tg
-        #print typ
-        #print hRL
-        #print hRU
-        #print showPref
-        #print sort
-
-#!!! isactivated, tag, averagereviewrate
 
         Plist = []
         Clist = []
 
-        if showPref == "All":
-            if typ == "Private Tutor":
+        if showPref == "All" and( (private and not contract) or (contract and not private)):
+            print "here"
+            if private and not contract:
+                Result = PrivateTutor.objects.all()
+            elif contract and not private:
+                Result = ContractTutor.objects.all()
+
+
+            Result = Result.exclude(user__user__username=username)
+            if not fN == "":
+                print "123"
+                Result = Result.filter(Q(user__user__first_name__iexact=fN))
+            if not lN == "":
+                Result = Result.filter(Q(user__user__last_name__iexact=lN))
+            if not sch == "":
+                Result = Result.filter(Q(university__iexact=sch)) 
+            if not cC == "":
+                Result = Result.filter(Q(course__courseCode__courseCode__iexact=cC)) 
+            if not tg == "":
+                Result = Result.filter(Q(tag__tag__iexact=tg))
+            if not contract:
+                Result = Result.filter(Q(hourlyRate__range=(hRL,hRU)))
+            Result = Result.filter(Q(isactivated=True))
+            if not contract:
+                result_list = Result.order_by('-hourlyRate').distinct()
+            else:
+                result_list = Result.distinct() 
+            return result_list
+        else:
+            print "there"
+            if showPref == "All":
+                print "hereeee"
                 Presult = Presult.exclude(user__user__username=username)
-                #!!!isactivated=False
-                #print Presult
-                Presult = Presult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg,hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()
-
-
-
-                #Ptag = Ptag.filter(tutorID=Presult.) #tutorid
-
-                result_list = Presult
-
-            if typ == "Contracted Tutor":
                 Cresult = Cresult.exclude(user__user__username=username)
-                #!!!isactivated=False
 
-                Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()
+                if not fN == "":
+                    print "123"
+                    Presult = Presult.filter(Q(user__user__first_name__iexact=fN))
+                    Cresult = Presult.filter(Q(user__user__first_name__iexact=fN))
+                if not lN == "":
+                    Presult = Presult.filter(Q(user__user__last_name__iexact=lN))
+                    Cresult = Presult.filter(Q(user__user__last_name__iexact=lN))
+                if not sch == "":
+                    Presult = Presult.filter(Q(university__iexact=sch))
+                    Cresult = Presult.filter(Q(university__iexact=sch))
+                if not cC == "":
+                    Presult = Presult.filter(Q(course__courseCode__courseCode__iexact=cC))
+                    Cresult = Presult.filter(Q(course__courseCode__courseCode__iexact=cC))
+                if not tg == "":
+                    Presult = Presult.filter(Q(tag__tag__iexact=tg))
+                    Cresult = Presult.filter(Q(tag__tag__iexact=tg))
+                Presult = Presult.filter(Q(hourlyRate__range=(hRL,hRU)))
+                Presult = Presult.filter(Q(isactivated=True)).order_by('-hourlyRate').distinct()
+                result_list1 = Presult
+                Cresult = Cresult.filter(Q(isactivated=True))
+                result_list2 = Cresult
+                result_list = list(chain(result_list1, result_list2))
 
-                result_list = Cresult
 
-            if typ == False:
+            if showPref == "Seven":
+                #listofPTutor = PrivateTutor.objects.all()
+                #listofCTutor = ContractTutor.objects.all()
+                listofBookedtutor = Booking.objects.all()
+                print listofBookedtutor
+                listofBookedtutor =  listofBookedtutor.exclude(tutorID__user__username=username)
+                print listofBookedtutor
+                listofBlackout = Blackout.objects.all()
+                print listofBlackout
+                listofBlackout = listofBlackout.exclude(tutorID__user__user__username=username)
+                print listofBlackout
+
+                #Booking.objects.values("id").annotate(Count("id"))
+                #Blackout.objects.values("id").annotate(Count("id"))
                 Presult = Presult.exclude(user__user__username=username)
-                #!!!isactivated=False
+                Presult = Presult.filter(isactivated=True).order_by('-hourlyRate').distinct()
 
-                Presult = Presult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg,hourlyRate__range=(hRL,hRU)).order_by('-hourlyRate').distinct()
+                for oneTutor in Presult:
+                    count = 0
+                    for oneBooking in listofBookedtutor:
+                        print oneBooking.tutorID.tutor.isactivated
+                        if oneBooking.tutorID == oneTutor.id: #not sure oneTutor.id is the id for tutor?
+                            count = count + 1
+                    for oneBlackout in listofBlackout:
+                        if oneBlackout.tutorID == oneTutor.id:
+                            count = count + 1
+                    if count < 168:
+                        Plist.append(oneTutor)
 
                 Cresult = Cresult.exclude(user__user__username=username)
-                #!!!isactivated=False
-
-                Cresult = Cresult.filter(user__user__first_name__icontains=fN,user__user__last_name__icontains=lN,university__icontains=sch,course__courseCode__courseCode__icontains=cC,tag__tag__icontains=tg).distinct()
-                #Presult = Presult.order_by('-hourlyRate').distinct()
+                Cresult = Cresult.filter(isactivated=True).distinct()
+                    #!!!isactivated=False
 
                 #Cresult = Cresult.distinct()
+                for oneTutor in Cresult:
+                    count = 0
+                    for oneBooking in listofBookedtutor:
+                        if oneBooking.tutorID == oneTutor.id:
+                            count = count + 1
+                    for oneBlackout in listofBlackout:
+                        if oneBlackout.tutorID == oneTutor.id:
+                            count = count + 1
+                    if count < 336:
+                        Clist.append(oneTutor)
+                #print Clist
+                result_list = list(chain(Plist, Clist))
+            return result_list
 
-                if hRL > 0:
-                    result_list = Presult
-                elif hRL == 0:
-                    result_list = list(chain(Presult, Cresult))
-
-        #return result_list
-
-        if showPref == "Seven":
-            #listofPTutor = PrivateTutor.objects.all()
-            #listofCTutor = ContractTutor.objects.all()
-            listofBookedtutor = Booking.objects.all()
-            listofBlackout = Blackout.objects.all()
-
-            #Booking.objects.values("id").annotate(Count("id"))
-            #Blackout.objects.values("id").annotate(Count("id"))
-            Presult = Presult.exclude(user__user__username=username).order_by('-hourlyRate').distinct()
-                #!!!isactivated=False
-
-            #Presult = Presult.order_by('-hourlyRate').distinct()
-            for oneTutor in Presult:
-                count = 0
-                for oneBooking in listofBookedtutor:
-                    if oneBooking.tutorID == oneTutor.id: #not sure oneTutor.id is the id for tutor?
-                        count = count + 1
-                for oneBlackout in listofBlackout:
-                    if oneBlackout.tutorID == oneTutor.id:
-                        count = count + 1
-                if count < 168:
-                    Plist.append(oneTutor)
-            #print Plist
-            #result_list = Plist
-
-            Cresult = Cresult.exclude(user__user__username=username).distinct()
-                #!!!isactivated=False
-
-            #Cresult = Cresult.distinct()
-            for oneTutor in Cresult:
-                count = 0
-                for oneBooking in listofBookedtutor:
-                    if oneBooking.tutorID == oneTutor.id:
-                        count = count + 1
-                for oneBlackout in listofBlackout:
-                    if oneBlackout.tutorID == oneTutor.id:
-                        count = count + 1
-                if count < 336:
-                    Clist.append(oneTutor)
-            #print Clist
-            result_list = list(chain(Plist, Clist))
-
-
-        #avgReviewlist = Review.objects.filter(tutorID=result_list.id)
-        '''for oneTutor in result_list:
-            Rtag = Tag.objects.filter(tutorID = oneTutor.id)'''
-        #print Rtag
-
-
-        #context = {'ListOfTutor': result_list, 'ListofTag': Rtag, 'avgReviewList': avgReviewList}
-        #context = {'ListOfTutor': result_list, 'ListofTag': Rtag, }
-        #template = loader.get_template('searchResults.html')
-        #print result_list
-        #template = loader.get_template('searchResults.html')
-        return result_list #context
-        #return context
-        #return HttpResponse(template.render(context))
-        #return Rtag
-
-
-        #result = result.order_by('-hourlyRate')
-        #return Qlist
-
-
-        #result = result.order_by('-hourlyRate')
-        #return result
-
-
-    #if
-	#context_object_name = 'ListOfTutor'
-	#def get_queryset(self):
-		#return Tutor.objects.all().select_subclasses()
 
 def extimetable(request, TutorID):
     if request.method == "GET":
         context = customTimetable(TutorID, request.user.myuser)        
         template = loader.get_template('extimetable.html')
+
         #context = {'TargetTutor': TargetTutor, 'TodayDate': TodayDate, 'StartDate': StartDate, "EndDate": EndDate, "Dates": Dates, "thisWeekDates": thisWeekDates, "nextWeekDates":nextWeekDates, "Times": Hours, "ListOfSessions": ListOfSessions, 'TutorCourse' : TutorCourse}
         return HttpResponse(template.render(context, request))
     elif request.method == "POST":
         Pressedbutton = request.POST.get('eachbutton', '')
         request.session['extimetableToConfirmBooking_token'] = Pressedbutton
-        return HttpResponseRedirect('/search/%s/confirmbooking/' % TutorID)
+        return redirect('main:confirmBooking', TutorID=TutorID)
+        #return HttpResponseRedirect('/search/Result/%s/confirmbooking/' % TutorID)
 
 
 
@@ -600,14 +624,14 @@ def customIntimetable(request, type):
             #print dtsmoketest
             
             #define those dates that are out of booking range
-            if (eachdate<=TodayDate):
+            if (eachdate<TodayDate):
                 
                 tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
             
             elif (eachdate>TodayDate + timedelta(days=7)):
                 tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
             
-            elif (dtsmoketest <= now and eachdate<=(TodayDate + timedelta(days=1))):
+            elif (dtsmoketest <= now and eachdate<=(TodayDate)):
                 tempsession = Session(eachdate, eachhour, (smoketest+timedelta(minutes=sessionInterval)), "OOB", eachhour, tempbuttonid)
 
             else:
@@ -640,11 +664,12 @@ def customIntimetable(request, type):
     return context
 
 def intimetable(request):
-    if (hasattr(request.user.myuser, "student")):
+    if (hasattr(request.user.myuser, "tutor")):
+        return redirect('main:intimetable_tutor')
+    elif (hasattr(request.user.myuser, "student")):
         return redirect('main:intimetable_student')
 
-    elif (hasattr(request.user.myuser, "tutor")):
-        return redirect('main:intimetable_tutor')
+    
     else:
         print "None!!!"
 
@@ -708,6 +733,9 @@ def bio(request, TutorID):
     if request.method == "GET":
         context = customTimetable(TutorID, request.user.myuser)        
         template = loader.get_template('bio2.html')
+        review_list, reviewAvg = bio_review(TutorID)
+        context['review_list'] = review_list
+        context['reviewAvg'] = reviewAvg
         #context = {'TargetTutor': TargetTutor, 'TodayDate': TodayDate, 'StartDate': StartDate, "EndDate": EndDate, "Dates": Dates, "thisWeekDates": thisWeekDates, "nextWeekDates":nextWeekDates, "Times": Hours, "ListOfSessions": ListOfSessions, 'TutorCourse' : TutorCourse}
         return HttpResponse(template.render(context, request))
 
@@ -757,7 +785,12 @@ def customTimetable(TutorID, own):
     for eachdate in Dates:
         
         #get the bookings of the tutor on a particular day
-        DateBookSessionOfTutor = TargetTutor.getTutorBooking(eachdate)
+        
+        if (hasattr(own, "tutor") and hasattr(own, "student")):
+            print "student and tutor"
+            DateBookSessionOfTutor = own.tutor.getTutorBooking(eachdate) | TargetTutor.getTutorBooking(eachdate)
+        else:
+            DateBookSessionOfTutor = TargetTutor.getTutorBooking(eachdate)
 
         #get the blackouts of the tutor on a particular day
         BlackOutTutor = Blackout.objects.getBlackOutTutorDate(TutorID, eachdate)
@@ -914,10 +947,15 @@ def confirmBooking(request, TutorID):
 
         b.status = "not yet begun"
         b.timestamp = timezone.localtime(timezone.now())
+        #put payment in
+        b.save()
+        bookingID = b.id
+        if hasattr(t, 'hourlyRate'):
 
-        print b.id
-        bookingResults.bookingID = b
-        bookingResults.createTransaction()
+            print b.id
+            bookingResults.bookingID = b
+            bookingResults.createTransaction()
+        b.book()
         return HttpResponseRedirect('/booking/%s/' % bookingID)
 
 
@@ -932,8 +970,13 @@ def ConfirmCancel(request, booking_id):
     booking = get_object_or_404(Booking, pk=booking_id)
     booking.status = "Cancelled"
     booking.save()
-    wallet = get_object_or_404(Wallet, user=booking.studentID.user)
-    wallet.refund(booking.totalPayable, booking.tutorID)
+    if (booking.totalPayable != 0):
+        #get transaction
+        t = Transaction.objects.get(bookingID = booking)
+        t.cancel()
+
+    #booking cancel
+    booking.cancel()
 
     # Always return an HttpResponseRedirect after successfully dealing
     # with POST data. This prevents data from being posted twice if a

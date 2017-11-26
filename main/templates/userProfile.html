@@ -8,6 +8,8 @@
 		document.getElementById("edit").style.display = "none";
 		document.getElementById("description").removeAttribute("readonly", "");
     document.getElementById("isactivated").removeAttribute("disabled", "");
+
+    document.getElementById("tag").removeAttribute("readonly", "");
 		if (document.getElementById("type").value == 'Private Tutor'){
 			document.getElementById("hourly").removeAttribute("readonly", "");
 		}
@@ -39,6 +41,28 @@
 		}
 
 	}
+
+  function validateHourlyRate(){
+    var hourlyRate = document.getElementById("hourly").value;
+    var hourlyRateDiv = document.getElementById("hourly");
+    if (hourlyRate%10 == 0){
+
+      hourlyRateDiv.classList.remove("is-invalid");
+      hourlyRateDiv.classList.add("is-valid");
+      return true;
+      //valid
+    }
+    else{
+      //invalid
+
+      hourlyRateDiv.classList.add("is-invalid");
+      hourlyRateDiv.classList.remove("is-valid");
+      return false;
+    }
+
+
+  }
+
 </script>
 <div class="container">
     <div class="user row row-content">
@@ -117,7 +141,7 @@
 {% endif %}
 {% if tutor %}
 <div class="tutor row row-content">
-	<form action="{% url 'main:updateprofile' %}" class="form-edit-tutor" method="post" enctype="multipart/form-data">
+	<form action="{% url 'main:updateprofile' %}" class="form-edit-tutor" method="post" enctype="multipart/form-data" onsubmit="return validateHourlyRate()">
     {% csrf_token %}
 	 <h2>Tutor Info</h2>
       <div class="form-row">       
@@ -141,23 +165,41 @@
       {% if type == 'Private Tutor' %}
       <div class="form-row">
   	      <div class="form-group col-md-12">
-  			<label for="hourly">Hourly rate:</label>
-    		<input type="text" name="hourly_rate" class="form-control" id="hourly" value="{{ request.user.myuser.tutor.privatetutor.hourlyRate }}" readonly="">
-  		</div>
+      			<label for="hourly">Hourly rate:</label>
+        		<input type="text" name="hourly_rate" class="form-control" id="hourly" value="{{ request.user.myuser.tutor.privatetutor.hourlyRate }}" readonly="" onkeyup="validateHourlyRate()">
+      		  <small id="passwordHelpBlock" class="form-text text-muted">
+            
+              <i>
+                <ul>
+                  <li>Your hourly rate must be a multiple of 10.</li>
+                  
+                </ul>
+              </i>
+            </small>
+          </div>
+
       </div>
+      
       {% endif %}
-      <div class="form-row tutor-course">
-      	<div class="form-group col-md-12">
-      	<label for="hourly">Tag:</label></div>
-      	{% for course in request.user.myuser.tutor.course_set.all %}
-      	<div class="form-group col-md-1">
-      		<h4><span class="label label-warning">{{ course.courseCode }}</span></h4>
-      	</div>
-      	{% endfor %}
+      <div class="form-row">
+        <div class="form-group col-md-12">
+          <label for="tag">Tag:</label>
+          <input type="text" name="tag" class="form-control" id="tag" value="{{ TagString }}" readonly="" onkeyup="">
         </div>
+
+      </div>
+      <div class="form-row tutor-course">
+        	<div class="form-group col-md-12">
+        	<label for="hourly">Course:</label></div>
+        	{% for course in request.user.myuser.tutor.course_set.all %}
+          	<div class="form-group col-md-1">
+          		<h4><span class="label label-warning">{{ course.courseCode }}</span></h4>
+          	</div>
+        	{% endfor %}
+          </div>
       <div class="form-row course-catalogue" id="course-catalogue" style="display: none;">
       	<div class="form-group col-md-12">
-      		<label for="hourly">Edit Tag:</label>
+      		<label for="hourly">Edit Course:</label>
       	{% for course in course_catalogue %}
       		<div class="checkbox">
 			  <label><input type="checkbox" name="courseCode" id="{{ course.courseCode }}" value="{{ course.courseCode }}" onchange="toggleCheckBox(this.id)">{{course.courseCode}}: {{course.courseName}}</label>
